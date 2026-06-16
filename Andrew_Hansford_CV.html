@@ -25,7 +25,6 @@
     min-height: 100vh;
   }
 
-  /* SELECTOR UI */
   .selector-bar {
     background: var(--navy);
     padding: 12px 40px;
@@ -77,7 +76,6 @@
   }
   .print-btn:hover { opacity: 0.85; }
 
-  /* CV PAGE */
   .cv-page {
     max-width: 800px;
     margin: 32px auto;
@@ -86,43 +84,35 @@
     box-shadow: 0 2px 24px rgba(0,0,0,0.08);
   }
 
-  /* HEADER */
   .cv-name { font-size: 30px; font-weight: 300; color: var(--navy); letter-spacing: 0.02em; margin-bottom: 4px; }
   .cv-tagline { font-size: 13px; font-weight: 300; color: var(--muted); margin-bottom: 3px; }
   .cv-contact { font-size: 13px; font-weight: 300; color: var(--muted); margin-bottom: 0; }
 
-  /* SECTIONS */
   .section-heading {
-    font-size: 11px;
-    font-weight: 400;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--navy);
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.10em;
     border-bottom: 0.5px solid var(--navy);
     padding-bottom: 5px;
     margin: 22px 0 12px;
   }
 
-  /* BODY */
   .body-text { font-size: 12px; font-weight: 300; line-height: 1.65; color: var(--text); margin-bottom: 8px; }
 
-  /* ROLE */
   .role-block { margin-bottom: 14px; }
   .role-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
   .role-meta { font-size: 12px; font-weight: 300; color: var(--muted); margin-bottom: 6px; }
 
-  /* LISTS */
   ul.cv-list { padding-left: 16px; margin-bottom: 6px; }
   ul.cv-list li { font-size: 12px; font-weight: 300; line-height: 1.65; color: var(--text); margin-bottom: 3px; }
 
-  /* TWO COL */
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 2.5rem; }
 
-  /* CV SECTIONS — shown/hidden by type */
   .cv-section { display: none; }
   .cv-section.visible { display: block; }
 
-  /* PRINT */
   @media print {
     .selector-bar { display: none; }
     body { background: white; }
@@ -139,69 +129,67 @@
   <button class="cv-btn active" onclick="showCV('executive')">Executive</button>
   <button class="cv-btn" onclick="showCV('delivery')">Delivery Lead</button>
   <button class="cv-btn" onclick="showCV('advisory')">Advisory</button>
-  <button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
+  <button class="print-btn" onclick="window.print()">&#11015; Save as PDF</button>
 </div>
 
 <div class="cv-page">
 
-  <!-- SHARED HEADER -->
   <h1 class="cv-name">Andrew Hansford</h1>
-  <p class="cv-tagline" id="cv-tagline">Programme & PMO Leadership | Portfolio Governance | Pragmatic Delivery</p>
+  <p class="cv-tagline" id="cv-tagline">Complex Programme Leadership | Transformation &amp; Recovery | Multi-Workstream Delivery</p>
   <p class="cv-contact">Morrinsville, Waikato | +64 21 315 104 | andrew@zeroinon.kiwi | zeroinon.kiwi | linkedin.com/in/ahansfordnz</p>
 
   <!-- ==================== EXECUTIVE CV ==================== -->
   <div class="cv-section visible" id="cv-executive">
 
     <div class="section-heading">Profile</div>
-    <p class="body-text">Senior programme and transformation leader with over 20 years in the technology industry, including 10+ years of project and programme delivery experience across complex, enterprise-scale technology and data platform programmes in public sector, regulated, and commercial environments. Regularly engaged to bring clarity, structure, and momentum to programmes operating under pressure, coordinating business, technology, and delivery workstreams to achieve agreed outcomes on time and within budget. Brings a systems-level perspective to programme planning, cross-functional coordination, and benefits realisation, with hands-on experience across Jira, Microsoft Project, and Power BI.</p>
+    <p class="body-text">Senior programme leader with over 20 years in the technology industry, including 10+ years leading complex, multi-workstream transformation programmes across public sector, regulated, and commercial environments. Regularly engaged to step into complex or at-risk programmes, quickly assess current state, and bring structure, momentum, and accountability back to delivery. Known for calm, decisive leadership under pressure &mdash; building trust with senior stakeholders, leading project managers and workstream leads, and driving outcomes in fast-moving, ambiguous environments.</p>
 
     <div class="section-heading">Leadership Philosophy</div>
-    <p class="body-text">I lead by creating clarity, empowering people, and removing barriers to delivery. My focus is building sustainable capability — leaving teams stronger, more confident, and less dependent on vendors once the work is done.</p>
+    <p class="body-text">I lead by creating clarity and removing barriers so teams can do their best work. With project managers, my focus is building their confidence and capability &mdash; coaching them to own their delivery, make good decisions under pressure, and grow as practitioners. I believe strong outcomes follow when leaders invest in their people first.</p>
 
     <div class="section-heading">Core Capabilities</div>
     <div class="two-col">
       <ul class="cv-list">
-        <li>Programme Planning, Delivery & Oversight (Agile | Hybrid | Waterfall)</li>
-        <li>PMO Establishment, Governance Rhythms & Portfolio Reporting</li>
-        <li>In-Flight Programme Stabilisation & Delivery Momentum</li>
-        <li>Portfolio Visibility, Prioritisation & Risk Management</li>
-        <li>Commercial Discipline & Vendor Accountability</li>
-        <li>Stakeholder Engagement & Executive Influence (CFO / Board level)</li>
+        <li>Complex Programme &amp; Multi-Workstream Delivery</li>
+        <li>Programme Reset, Recovery &amp; Stabilisation</li>
+        <li>Governance, Risk, Change &amp; Reporting (RAIDD)</li>
+        <li>Leading Project Managers &amp; Workstream Leads</li>
+        <li>Senior Stakeholder Engagement &amp; Executive Influence</li>
       </ul>
       <ul class="cv-list">
-        <li>Cross-Functional Workstream Coordination</li>
-        <li>Change Management & Business Adoption</li>
-        <li>Business Case Development & Executive Reporting</li>
-        <li>People Leadership & Multidisciplinary Team Management</li>
-        <li>Tools: Jira | Microsoft Project | Power BI | Power Automate</li>
+        <li>Dependency &amp; Priority Management</li>
+        <li>Vendor &amp; Supplier Accountability</li>
+        <li>Business Integration &amp; Organisational Change</li>
+        <li>Delivery in Ambiguous, High-Pressure Environments</li>
+        <li>Tools: Jira | Microsoft Project | Power BI</li>
       </ul>
     </div>
 
     <div class="section-heading">Career Highlights</div>
     <ul class="cv-list">
-      <li>Led a high visibility portfolio at Auckland Transport across concurrent Digital Twin, Traffic Optimisation, Fare Review, and enterprise data pipeline streams</li>
-      <li>Delivered the national Connected Property programme at LINZ, onboarding 80%+ of councils under tight statutory timelines</li>
-      <li>Stabilised an at-risk Utility Network Transformation programme at WEL Networks, resetting priorities and restoring stakeholder confidence</li>
-      <li>Took ownership of an underperforming systems function at SealesWinslow, reducing vendor dependency by 75% and improving reliability to 99% uptime</li>
-      <li>Led MPI's national geospatial practice across nine business units; negotiated a $1M enterprise licence and provided intelligence leadership during COVID-19</li>
-      <li>Currently leading systems improvement and coordination uplift within Te Whatu Ora across six districts in the Te Manawa Taki region</li>
+      <li>Regularly brought in to reset and stabilise programmes under pressure &mdash; WEL Networks (at-risk Utility Network Transformation), SealesWinslow (underperforming systems function), AT (high-pressure multi-stream portfolio inherited mid-delivery)</li>
+      <li>Led four concurrent delivery squads at Auckland Transport across Digital Twin, Traffic Optimisation, Fare Review, and enterprise data pipelines &mdash; introducing RAIDD governance and reducing overhead by ~20%</li>
+      <li>Delivered the national Connected Property programme at LINZ, onboarding 80%+ of councils under tight statutory timelines while acting as interim manager</li>
+      <li>Supported the Ballance sale of SealesWinslow to Farmlands &mdash; managing technology continuity, vendor changeover, and operational risk through a significant business integration</li>
+      <li>Led MPI's national geospatial practice across nine business units; negotiated a $1M enterprise licence and provided intelligence leadership during COVID-19, Nelson Fires, and Fruit Fly responses</li>
+      <li>Currently leading a complex multi-organisation improvement programme within Te Whatu Ora with formal Steering Group reporting</li>
     </ul>
 
     <div class="section-heading">Professional Experience</div>
 
     <div class="role-block">
-      <p class="role-title">Systems Improvement Lead — Childhood Immunisation</p>
-      <p class="role-meta">Te Whatu Ora (via Zero In On Limited) | May 2025 – Present</p>
+      <p class="role-title">Systems Improvement Lead &mdash; Childhood Immunisation</p>
+      <p class="role-meta">Te Whatu Ora (via Zero In On Limited) | May 2025 &ndash; Present</p>
       <ul class="cv-list">
         <li>Leading Phase 2 Discovery and Gap Analysis for the Overdue and At-Risk Systems Improvement Project across three Te Manawa Taki districts</li>
-        <li>Facilitating structured improvement with PHOs, Hauora Māori Services, Pacific Health providers, OIS providers, and primary care</li>
+        <li>Facilitating structured improvement with PHOs, Hauora M&#257;ori Services, Pacific Health providers, OIS providers, and primary care</li>
         <li>Applying RASCI frameworks, equity lens, and formal Steering Group reporting within a four-phase project structure</li>
       </ul>
     </div>
 
     <div class="role-block">
-      <p class="role-title">Senior Project Manager — AI, Data & Analytics</p>
-      <p class="role-meta">Auckland Transport (via Zero In On Limited) | Oct 2024 – Feb 2026</p>
+      <p class="role-title">Senior Project Manager &mdash; AI, Data &amp; Analytics</p>
+      <p class="role-meta">Auckland Transport (via Zero In On Limited) | Oct 2024 &ndash; Feb 2026</p>
       <ul class="cv-list">
         <li>Led a $2M+ portfolio across Digital Twin, Traffic Optimisation, Fare Review, and enterprise data pipeline modernisation</li>
         <li>Managed four concurrent delivery squads; introduced RAIDD governance reducing overhead by ~20%</li>
@@ -210,27 +198,28 @@
     </div>
 
     <div class="role-block">
-      <p class="role-title">Founder & Principal Consultant</p>
-      <p class="role-meta">Zero In On Limited | March 2022 – Present</p>
+      <p class="role-title">Founder &amp; Principal Consultant</p>
+      <p class="role-meta">Zero In On Limited | March 2022 &ndash; Present</p>
       <ul class="cv-list">
         <li>Trusted advisor to senior leaders across public and private sector; brought in to stabilise, improve, or accelerate delivery under pressure</li>
         <li>Design and embed delivery governance frameworks (RAIDD, benefits realisation, delivery assurance)</li>
-        <li>Currently developing the Programme Governance Platform — an AI-enabled tool for portfolio visibility and governance reporting</li>
+        <li>Currently developing the Programme Governance Platform &mdash; an AI-enabled tool for portfolio visibility and governance reporting</li>
       </ul>
     </div>
 
     <div class="role-block">
       <p class="role-title">Technical Services Manager</p>
-      <p class="role-meta">SealesWinslow (via Zero In On Limited) | Jun 2023 – Sep 2024</p>
+      <p class="role-meta">SealesWinslow (via Zero In On Limited) | Jun 2023 &ndash; Sep 2024</p>
       <ul class="cv-list">
         <li>Owned $500K cost centre; reduced vendor dependency by 75% through capability uplift and delivery discipline</li>
         <li>Improved system reliability to 99% uptime and case management efficiency by ~50%</li>
+        <li>Supported the Ballance sale to Farmlands &mdash; managing technology continuity and vendor changeover through significant organisational change</li>
       </ul>
     </div>
 
     <div class="role-block">
       <p class="role-title">GIS Manager</p>
-      <p class="role-meta">WEL Networks | Sep 2022 – Feb 2023</p>
+      <p class="role-meta">WEL Networks | Sep 2022 &ndash; Feb 2023</p>
       <ul class="cv-list">
         <li>Led eight direct reports; stabilised an at-risk Utility Network Transformation programme</li>
         <li>Reset vendor engagement and introduced delivery discipline, leaving the programme in a materially stronger position</li>
@@ -238,16 +227,16 @@
     </div>
 
     <div class="role-block">
-      <p class="role-title">Programme Manager — Project Specialist</p>
-      <p class="role-meta">Western Bay of Plenty District Council (via Zero In On Limited) | Apr 2022 – Sep 2022</p>
+      <p class="role-title">Programme Manager &mdash; Project Specialist</p>
+      <p class="role-meta">Western Bay of Plenty District Council (via Zero In On Limited) | Apr 2022 &ndash; Sep 2022</p>
       <ul class="cv-list">
-        <li>Delivered the PM Strategy, Framework, and Lifecycle; established a community of practice incorporating Te ao Māori perspectives</li>
+        <li>Delivered the PM Strategy, Framework, and Lifecycle; established a community of practice incorporating Te ao M&#257;ori perspectives</li>
       </ul>
     </div>
 
     <div class="role-block">
-      <p class="role-title">Connected Property Delivery Lead / Acting Manager — Addressing</p>
-      <p class="role-meta">Toitū Te Whenua — Land Information New Zealand | Jun 2021 – Apr 2022</p>
+      <p class="role-title">Connected Property Delivery Lead / Acting Manager &mdash; Addressing</p>
+      <p class="role-meta">Toit&#363; Te Whenua &mdash; Land Information New Zealand | Jun 2021 &ndash; Apr 2022</p>
       <ul class="cv-list">
         <li>Delivered the national Connected Property programme (~$500K); onboarded 80%+ of councils nationally</li>
         <li>Acting Manager for an eight-person operational team during peak delivery pressure</li>
@@ -256,7 +245,7 @@
 
     <div class="role-block">
       <p class="role-title">Geospatial Practice Lead</p>
-      <p class="role-meta">Ministry for Primary Industries | Feb 2019 – Jun 2021</p>
+      <p class="role-meta">Ministry for Primary Industries | Feb 2019 &ndash; Jun 2021</p>
       <ul class="cv-list">
         <li>Led national geospatial practice (6 direct / 30+ indirect); community of practice of 150+ practitioners</li>
         <li>Negotiated $1M enterprise licence; decommissioned 29 servers; led intelligence response during COVID-19, Nelson Fires, and Fruit Fly responses</li>
@@ -264,8 +253,8 @@
     </div>
 
     <div class="role-block">
-      <p class="role-title">Senior Spatial Analyst & Project Manager</p>
-      <p class="role-meta">Thames-Coromandel District Council | Feb 2013 – Feb 2019</p>
+      <p class="role-title">Senior Spatial Analyst &amp; Project Manager</p>
+      <p class="role-meta">Thames-Coromandel District Council | Feb 2013 &ndash; Feb 2019</p>
       <ul class="cv-list">
         <li>Led enterprise GIS transformation; strategic advice to senior leaders; supported Civil Defence and Emergency Management operations</li>
       </ul>
@@ -273,28 +262,28 @@
 
     <div class="section-heading">Earlier Career</div>
     <ul class="cv-list">
-      <li>Spatial Intelligence Analyst | NZ Fire Service | Nov 2010 – Feb 2013</li>
-      <li>Information Systems / GIS Officer | Environment Waikato | Nov 2008 – Nov 2010</li>
-      <li>Business Support Services (GIS) | Department of Conservation | Jun 2006 – Nov 2008</li>
-      <li>Hydraulic Engineer | DHI | Oct 2005 – Mar 2006</li>
-      <li>Research Assistant & Guest Lecturer | University of Waikato | Feb 2005 – Dec 2017</li>
+      <li>Spatial Intelligence Analyst | NZ Fire Service | Nov 2010 &ndash; Feb 2013</li>
+      <li>Information Systems / GIS Officer | Environment Waikato | Nov 2008 &ndash; Nov 2010</li>
+      <li>Business Support Services (GIS) | Department of Conservation | Jun 2006 &ndash; Nov 2008</li>
+      <li>Hydraulic Engineer | DHI | Oct 2005 &ndash; Mar 2006</li>
+      <li>Research Assistant &amp; Guest Lecturer | University of Waikato | Feb 2005 &ndash; Dec 2017</li>
     </ul>
 
-    <div class="section-heading">Education & Certifications</div>
+    <div class="section-heading">Education &amp; Certifications</div>
     <div class="two-col">
       <ul class="cv-list">
-        <li>MSc (Hons), Earth & Ocean Sciences — University of Waikato</li>
-        <li>BSc, Earth & Ocean Sciences — University of Waikato</li>
+        <li>MSc (Hons), Earth &amp; Ocean Sciences &mdash; University of Waikato</li>
+        <li>BSc, Earth &amp; Ocean Sciences &mdash; University of Waikato</li>
       </ul>
       <ul class="cv-list">
         <li>PRINCE2 Practitioner | ITIL Practitioner | Agile Practitioner | Certified Scrum Product Owner</li>
-        <li>CIMS Level 2 & 4 (Emergency Management)</li>
+        <li>CIMS Level 2 &amp; 4 (Emergency Management)</li>
       </ul>
     </div>
 
     <div class="section-heading">Awards</div>
     <ul class="cv-list">
-      <li>Excellence in GIS Award — NZ Esri Conference</li>
+      <li>Excellence in GIS Award &mdash; NZ Esri Conference</li>
       <li>Canterbury Earthquake Citation of Distinction</li>
     </ul>
 
@@ -304,9 +293,9 @@
   <div class="cv-section" id="cv-delivery">
 
     <div class="section-heading">Profile</div>
-    <p class="body-text">Enterprise delivery leader with 20+ years of experience driving complex, multi-stream technology programmes in regulated environments. Proven at managing interdependencies across concurrent squads, clearing blockers with a bias to done, and connecting delivery activity to strategic outcomes. Hands-on with Jira, Microsoft Project, and RAIDD governance — bringing structure, critical path visibility, and momentum to high-stakes programmes.</p>
+    <p class="body-text">Enterprise delivery leader with 20+ years of experience driving complex, multi-stream technology programmes in regulated environments. Proven at managing interdependencies across concurrent squads, clearing blockers with a bias to done, and connecting delivery activity to strategic outcomes. Hands-on with Jira, Microsoft Project, and RAIDD governance &mdash; bringing structure, critical path visibility, and momentum to high-stakes programmes.</p>
 
-    <div class="section-heading">Project Delivery & Leadership Capability</div>
+    <div class="section-heading">Project Delivery &amp; Leadership Capability</div>
     <div class="two-col">
       <ul class="cv-list">
         <li>Programme and portfolio delivery (Agile | Hybrid)</li>
@@ -326,7 +315,7 @@
     <div class="section-heading">Selected Enterprise Outcomes</div>
     <ul class="cv-list">
       <li>Te Whatu Ora: leading systems improvement across six districts for the national childhood immunisation health target</li>
-      <li>Auckland Transport: progressed Digital Twin (DRB approved); delivered Phase 1 Google & NGIS PoC; delivered Fare Review on time under pressure</li>
+      <li>Auckland Transport: progressed Digital Twin (DRB approved); delivered Phase 1 Google &amp; NGIS PoC; delivered Fare Review on time under pressure</li>
       <li>SealesWinslow: reduced vendor dependency by 75%; improved uptime to 99%</li>
       <li>LINZ: onboarded 80%+ councils for Connected Property; delivered framework under time pressure</li>
       <li>MPI: led AI PoCs with Maxar; negotiated $1M enterprise licence; decommissioned 29 servers</li>
@@ -335,18 +324,18 @@
     <div class="section-heading">Professional Experience</div>
 
     <div class="role-block">
-      <p class="role-title">Systems Improvement Lead — Childhood Immunisation</p>
-      <p class="role-meta">Te Whatu Ora (via Zero In On Limited) | May 2025 – Present</p>
+      <p class="role-title">Systems Improvement Lead &mdash; Childhood Immunisation</p>
+      <p class="role-meta">Te Whatu Ora (via Zero In On Limited) | May 2025 &ndash; Present</p>
       <ul class="cv-list">
         <li>Leading Phase 2 Discovery and Gap Analysis across three Te Manawa Taki districts; built BPMN swimlane process maps and Gap Register of 38 gaps</li>
-        <li>Facilitating structured improvement with PHOs, Hauora Māori Services, Pacific providers, OIS, and primary care</li>
+        <li>Facilitating structured improvement with PHOs, Hauora M&#257;ori Services, Pacific providers, OIS, and primary care</li>
         <li>Applying RASCI frameworks; reporting formally to a Steering Group within a four-phase structure</li>
       </ul>
     </div>
 
     <div class="role-block">
-      <p class="role-title">Senior Project Manager — AI, Data & Analytics</p>
-      <p class="role-meta">Auckland Transport (via Zero In On Limited) | Oct 2024 – Feb 2026</p>
+      <p class="role-title">Senior Project Manager &mdash; AI, Data &amp; Analytics</p>
+      <p class="role-meta">Auckland Transport (via Zero In On Limited) | Oct 2024 &ndash; Feb 2026</p>
       <ul class="cv-list">
         <li>Led $2M+ portfolio across Digital Twin, Traffic Optimisation, Fare Review, and enterprise data pipelines</li>
         <li>Managed four concurrent squads; used Microsoft Project for critical path and Jira for squad oversight</li>
@@ -356,7 +345,7 @@
 
     <div class="role-block">
       <p class="role-title">Technical Services Manager</p>
-      <p class="role-meta">SealesWinslow (via Zero In On Limited) | Jun 2023 – Sep 2024</p>
+      <p class="role-meta">SealesWinslow (via Zero In On Limited) | Jun 2023 &ndash; Sep 2024</p>
       <ul class="cv-list">
         <li>Owned $500K cost centre; reduced vendor dependency by 75%; improved uptime to 99%</li>
         <li>Supported Ballance sale to Farmlands; coordinated Spark device/service changeover</li>
@@ -365,7 +354,7 @@
 
     <div class="role-block">
       <p class="role-title">GIS Manager</p>
-      <p class="role-meta">WEL Networks | Sep 2022 – Feb 2023</p>
+      <p class="role-meta">WEL Networks | Sep 2022 &ndash; Feb 2023</p>
       <ul class="cv-list">
         <li>Led eight direct reports; stabilised at-risk Utility Network Transformation programme</li>
         <li>Reset vendor engagement; introduced delivery discipline improving visibility and confidence</li>
@@ -374,7 +363,7 @@
 
     <div class="role-block">
       <p class="role-title">Connected Property Delivery Lead / Acting Manager</p>
-      <p class="role-meta">Land Information New Zealand | Jun 2021 – Apr 2022</p>
+      <p class="role-meta">Land Information New Zealand | Jun 2021 &ndash; Apr 2022</p>
       <ul class="cv-list">
         <li>Delivered Connected Property (~$500K); onboarded 80%+ of councils nationally</li>
         <li>Acting Manager for eight-person team during peak delivery pressure</li>
@@ -383,17 +372,17 @@
 
     <div class="role-block">
       <p class="role-title">Geospatial Practice Lead</p>
-      <p class="role-meta">Ministry for Primary Industries | Feb 2019 – Jun 2021</p>
+      <p class="role-meta">Ministry for Primary Industries | Feb 2019 &ndash; Jun 2021</p>
       <ul class="cv-list">
         <li>Led national geospatial practice; community of practice of 150+ practitioners</li>
         <li>Negotiated $1M enterprise licence; led AI PoCs; intelligence leadership during COVID-19</li>
       </ul>
     </div>
 
-    <div class="section-heading">Education & Certifications</div>
+    <div class="section-heading">Education &amp; Certifications</div>
     <ul class="cv-list">
-      <li>MSc (Hons) & BSc, Earth & Ocean Sciences — University of Waikato</li>
-      <li>PRINCE2 Practitioner | ITIL Practitioner | Agile Practitioner | Certified Scrum Product Owner | CIMS Level 2 & 4</li>
+      <li>MSc (Hons) &amp; BSc, Earth &amp; Ocean Sciences &mdash; University of Waikato</li>
+      <li>PRINCE2 Practitioner | ITIL Practitioner | Agile Practitioner | Certified Scrum Product Owner | CIMS Level 2 &amp; 4</li>
     </ul>
 
   </div>
@@ -402,43 +391,43 @@
   <div class="cv-section" id="cv-advisory">
 
     <div class="section-heading">Profile</div>
-    <p class="body-text">Senior transformation and advisory leader with over 20 years in the technology industry, with growing expertise in AI strategy, responsible adoption, and digital transformation across public sector and commercial environments. Regularly engaged to lead organisations through complex technology and operational change — building capability, embedding new ways of working, and ensuring initiatives are governed, tracked, and delivered with discipline. Brings practical AI literacy across AI-enabled tools, automation platforms, and agentic workflows, combined with proven change leadership capability and a systems-level perspective across people, process, technology, and governance.</p>
+    <p class="body-text">Senior transformation and advisory leader with over 20 years in the technology industry, with growing expertise in AI strategy, responsible adoption, and digital transformation across public sector and commercial environments. Regularly engaged to lead organisations through complex technology and operational change &mdash; building capability, embedding new ways of working, and ensuring initiatives are governed, tracked, and delivered with discipline. Brings practical AI literacy across AI-enabled tools, automation platforms, and agentic workflows, combined with proven change leadership capability and a systems-level perspective across people, process, technology, and governance.</p>
 
     <div class="section-heading">Advisory Strengths</div>
     <div class="two-col">
       <ul class="cv-list">
-        <li>AI Strategy & Responsible Adoption</li>
-        <li>Capability Building & Adult Learning</li>
-        <li>Workflow Design & Process Improvement</li>
-        <li>Digital & Data-Enabled Transformation</li>
-        <li>Organisational Change & People-Centred Delivery</li>
-        <li>Planning System & Geospatial Data Governance</li>
+        <li>AI Strategy &amp; Responsible Adoption</li>
+        <li>Capability Building &amp; Adult Learning</li>
+        <li>Workflow Design &amp; Process Improvement</li>
+        <li>Digital &amp; Data-Enabled Transformation</li>
+        <li>Organisational Change &amp; People-Centred Delivery</li>
+        <li>Planning System &amp; Geospatial Data Governance</li>
       </ul>
       <ul class="cv-list">
-        <li>Governance & Decision Architecture</li>
-        <li>Risk Governance & Framework Uplift</li>
-        <li>Strategic Prioritisation & Investment Discipline</li>
-        <li>Portfolio & Delivery System Stabilisation</li>
-        <li>Executive Advisory & Stakeholder Facilitation</li>
-        <li>Transformation in Regulated & Complex Environments</li>
+        <li>Governance &amp; Decision Architecture</li>
+        <li>Risk Governance &amp; Framework Uplift</li>
+        <li>Strategic Prioritisation &amp; Investment Discipline</li>
+        <li>Portfolio &amp; Delivery System Stabilisation</li>
+        <li>Executive Advisory &amp; Stakeholder Facilitation</li>
+        <li>Transformation in Regulated &amp; Complex Environments</li>
       </ul>
     </div>
 
     <div class="section-heading">Consulting Experience</div>
 
     <div class="role-block">
-      <p class="role-title">Systems Improvement Lead — Childhood Immunisation</p>
-      <p class="role-meta">Te Whatu Ora (via Zero In On Limited) | May 2025 – Present</p>
+      <p class="role-title">Systems Improvement Lead &mdash; Childhood Immunisation</p>
+      <p class="role-meta">Te Whatu Ora (via Zero In On Limited) | May 2025 &ndash; Present</p>
       <ul class="cv-list">
         <li>Leading Phase 2 Discovery and Gap Analysis for the Overdue and At-Risk Systems Improvement Project across three Te Manawa Taki districts</li>
-        <li>Engaging the people doing the work — PHOs, Hauora Māori Services, Pacific providers, OIS — to understand current state and design future-state coordination models</li>
+        <li>Engaging the people doing the work &mdash; PHOs, Hauora M&#257;ori Services, Pacific providers, OIS &mdash; to understand current state and design future-state coordination models</li>
         <li>Applying an equity lens throughout; formal governance reporting to a Steering Group</li>
       </ul>
     </div>
 
     <div class="role-block">
-      <p class="role-title">Senior Project Manager — AI, Data & Analytics</p>
-      <p class="role-meta">Auckland Transport (via Zero In On Limited) | Oct 2024 – Feb 2026</p>
+      <p class="role-title">Senior Project Manager &mdash; AI, Data &amp; Analytics</p>
+      <p class="role-meta">Auckland Transport (via Zero In On Limited) | Oct 2024 &ndash; Feb 2026</p>
       <ul class="cv-list">
         <li>Delivered AI-enabled Traffic Optimisation PoC with Google and NGIS; progressed Digital Twin infrastructure</li>
         <li>Led data and analytics workstream for Fare Review; introduced RAIDD governance discipline</li>
@@ -446,8 +435,8 @@
     </div>
 
     <div class="role-block">
-      <p class="role-title">Founder & Principal Consultant</p>
-      <p class="role-meta">Zero In On Limited | March 2022 – Present</p>
+      <p class="role-title">Founder &amp; Principal Consultant</p>
+      <p class="role-meta">Zero In On Limited | March 2022 &ndash; Present</p>
       <ul class="cv-list">
         <li>Partner with organisations to navigate complexity, improve how work gets done, and embed practical change that sticks</li>
         <li>Engage teams using a People, Process, then Systems and Technology framework</li>
@@ -457,7 +446,7 @@
 
     <div class="role-block">
       <p class="role-title">Technical Services Manager</p>
-      <p class="role-meta">SealesWinslow (via Zero In On Limited) | Jun 2023 – Sep 2024</p>
+      <p class="role-meta">SealesWinslow (via Zero In On Limited) | Jun 2023 &ndash; Sep 2024</p>
       <ul class="cv-list">
         <li>Reduced vendor dependency by 75% through capability uplift; mentored Senior Systems Analyst to independent ownership</li>
       </ul>
@@ -467,7 +456,7 @@
 
     <div class="role-block">
       <p class="role-title">Geospatial Practice Lead</p>
-      <p class="role-meta">Ministry for Primary Industries | Feb 2019 – Jun 2021</p>
+      <p class="role-meta">Ministry for Primary Industries | Feb 2019 &ndash; Jun 2021</p>
       <ul class="cv-list">
         <li>Led national geospatial practice; negotiated $1M enterprise licence; led AI PoCs using satellite imagery and machine learning</li>
         <li>Community of practice of 150+ practitioners; intelligence leadership during COVID-19, Nelson Fires, Fruit Fly responses</li>
@@ -476,15 +465,15 @@
 
     <div class="role-block">
       <p class="role-title">Connected Property Delivery Lead</p>
-      <p class="role-meta">Land Information New Zealand | Jun 2021 – Apr 2022</p>
+      <p class="role-meta">Land Information New Zealand | Jun 2021 &ndash; Apr 2022</p>
       <ul class="cv-list">
-        <li>Delivered national digital programme; onboarded 80%+ of councils; worked with Māori to embed Te ao Māori approaches to data governance</li>
+        <li>Delivered national digital programme; onboarded 80%+ of councils; worked with M&#257;ori to embed Te ao M&#257;ori approaches to data governance</li>
       </ul>
     </div>
 
     <div class="role-block">
-      <p class="role-title">Senior Spatial Analyst & Project Manager</p>
-      <p class="role-meta">Thames-Coromandel District Council | Feb 2013 – Feb 2019</p>
+      <p class="role-title">Senior Spatial Analyst &amp; Project Manager</p>
+      <p class="role-meta">Thames-Coromandel District Council | Feb 2013 &ndash; Feb 2019</p>
       <ul class="cv-list">
         <li>Led enterprise GIS transformation; strategic advice to senior leaders; supported Civil Defence operations</li>
         <li>Deep familiarity with local government planning, consenting, and regulatory processes</li>
@@ -493,7 +482,7 @@
 
     <div class="role-block">
       <p class="role-title">Guest Lecturer</p>
-      <p class="role-meta">University of Waikato | Feb 2005 – Dec 2017</p>
+      <p class="role-meta">University of Waikato | Feb 2005 &ndash; Dec 2017</p>
       <ul class="cv-list">
         <li>Nearly 13 years delivering field application and geospatial content to students and government practitioners</li>
       </ul>
@@ -501,28 +490,28 @@
 
     <div class="section-heading">Technical Advisory Domains</div>
     <ul class="cv-list">
-      <li><strong style="font-weight:500;">AI Adoption & Capability Building:</strong> Practical application of AI-enabled tools, automation platforms, and agentic workflows with a focus on responsible adoption and embedding AI into operational ways of working</li>
-      <li><strong style="font-weight:500;">Workflow Design & Process Improvement:</strong> Engaging teams to understand how work actually happens, finding friction, and designing future-state workflows collaboratively using a People, Process, then Systems and Technology approach</li>
-      <li><strong style="font-weight:500;">Planning System & Geospatial Data Governance:</strong> Deep expertise in spatial data platforms, national addressing systems, and the intersection of planning legislation, environmental management, and digital enablement</li>
-      <li><strong style="font-weight:500;">Digital & Data-Enabled Transformation:</strong> Design and delivery of digital transformation programmes across public sector and commercial environments</li>
-      <li><strong style="font-weight:500;">Information Governance & Portfolio Visibility:</strong> Structured governance frameworks, reporting cadence, and initiative tracking to support investment confidence</li>
+      <li><strong style="font-weight:500;">AI Adoption &amp; Capability Building:</strong> Practical application of AI-enabled tools, automation platforms, and agentic workflows with a focus on responsible adoption and embedding AI into operational ways of working</li>
+      <li><strong style="font-weight:500;">Workflow Design &amp; Process Improvement:</strong> Engaging teams to understand how work actually happens, finding friction, and designing future-state workflows collaboratively using a People, Process, then Systems and Technology approach</li>
+      <li><strong style="font-weight:500;">Planning System &amp; Geospatial Data Governance:</strong> Deep expertise in spatial data platforms, national addressing systems, and the intersection of planning legislation, environmental management, and digital enablement</li>
+      <li><strong style="font-weight:500;">Digital &amp; Data-Enabled Transformation:</strong> Design and delivery of digital transformation programmes across public sector and commercial environments</li>
+      <li><strong style="font-weight:500;">Information Governance &amp; Portfolio Visibility:</strong> Structured governance frameworks, reporting cadence, and initiative tracking to support investment confidence</li>
     </ul>
 
-    <div class="section-heading">Education & Certifications</div>
+    <div class="section-heading">Education &amp; Certifications</div>
     <div class="two-col">
       <ul class="cv-list">
-        <li>MSc (Hons), Earth & Ocean Sciences — University of Waikato</li>
-        <li>BSc, Earth & Ocean Sciences — University of Waikato</li>
+        <li>MSc (Hons), Earth &amp; Ocean Sciences &mdash; University of Waikato</li>
+        <li>BSc, Earth &amp; Ocean Sciences &mdash; University of Waikato</li>
       </ul>
       <ul class="cv-list">
         <li>PRINCE2 Practitioner | ITIL Practitioner | Agile Practitioner | Certified Scrum Product Owner</li>
-        <li>CIMS Level 2 & 4 (Emergency Management)</li>
+        <li>CIMS Level 2 &amp; 4 (Emergency Management)</li>
       </ul>
     </div>
 
     <div class="section-heading">Awards</div>
     <ul class="cv-list">
-      <li>Excellence in GIS Award — NZ Esri Conference</li>
+      <li>Excellence in GIS Award &mdash; NZ Esri Conference</li>
       <li>Canterbury Earthquake Citation of Distinction</li>
     </ul>
 
@@ -532,9 +521,9 @@
 
 <script>
 const taglines = {
-  executive: 'Programme & PMO Leadership | Portfolio Governance | Pragmatic Delivery',
+  executive: 'Complex Programme Leadership | Transformation &amp; Recovery | Multi-Workstream Delivery',
   delivery: 'IT Project Delivery | Complex Operational Environments | Digital Transformation',
-  advisory: 'AI Adoption & Capability Building | Workflow Improvement | People-Centred Change'
+  advisory: 'AI Adoption &amp; Capability Building | Workflow Improvement | People-Centred Change'
 };
 
 function showCV(type) {
@@ -542,7 +531,7 @@ function showCV(type) {
   document.querySelectorAll('.cv-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('cv-' + type).classList.add('visible');
   document.querySelector('[onclick="showCV(\'' + type + '\')"]').classList.add('active');
-  document.getElementById('cv-tagline').textContent = taglines[type];
+  document.getElementById('cv-tagline').innerHTML = taglines[type];
 }
 </script>
 
