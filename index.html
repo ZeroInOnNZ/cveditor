@@ -122,6 +122,36 @@
   .cv-section { display: none; }
   .cv-section.visible { display: block; }
 
+  /* DESIGN TAB — sidebar layout */
+  .cv-page.full-bleed { max-width: 900px; padding: 0; overflow: hidden; }
+  .shared-header.hidden { display: none; }
+
+  .design-layout { display: flex; align-items: stretch; }
+  .design-sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--navy);
+    color: #fff;
+    padding: 44px 28px;
+  }
+  .design-sidebar .d-name { font-size: 24px; font-weight: 300; margin-bottom: 4px; }
+  .design-sidebar .d-tagline { font-size: 11px; font-weight: 300; color: #cfe0f2; line-height: 1.5; margin-bottom: 28px; }
+  .design-sidebar .d-heading {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #9fc0e0; border-bottom: 1px solid rgba(255,255,255,0.25);
+    padding-bottom: 5px; margin: 22px 0 8px;
+  }
+  .design-sidebar .d-heading:first-of-type { margin-top: 0; }
+  .design-sidebar .d-list { font-size: 11px; font-weight: 300; line-height: 1.85; color: #eaf1f9; }
+
+  .design-main { flex-grow: 1; padding: 44px 40px; min-width: 0; }
+  .design-main .section-heading:first-child { margin-top: 0; }
+
+  @media print {
+    .cv-page.full-bleed { padding: 0; max-width: 100%; }
+    .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
   /* PRINT */
   @media print {
     .selector-bar { display: none; }
@@ -139,15 +169,18 @@
   <button class="cv-btn active" onclick="showCV('executive')">Executive</button>
   <button class="cv-btn" onclick="showCV('delivery')">Delivery Lead</button>
   <button class="cv-btn" onclick="showCV('advisory')">Advisory</button>
+  <button class="cv-btn" onclick="showCV('design')">Design</button>
   <button class="print-btn" onclick="window.print()">⬇ Save as PDF</button>
 </div>
 
 <div class="cv-page">
 
   <!-- SHARED HEADER -->
-  <h1 class="cv-name">Andrew Hansford</h1>
-  <p class="cv-tagline" id="cv-tagline">Data & Analytics Leadership | Health Sector | AI & Digital Transformation</p>
-  <p class="cv-contact">Morrinsville, Waikato | +64 21 315 104 | andrew@zeroinon.kiwi | zeroinon.kiwi | linkedin.com/in/ahansfordnz</p>
+  <div class="shared-header" id="shared-header">
+    <h1 class="cv-name">Andrew Hansford</h1>
+    <p class="cv-tagline" id="cv-tagline">Data & Analytics Leadership | Health Sector | AI & Digital Transformation</p>
+    <p class="cv-contact">Morrinsville, Waikato | +64 21 315 104 | andrew@zeroinon.kiwi | zeroinon.kiwi | linkedin.com/in/ahansfordnz</p>
+  </div>
 
   <!-- ==================== EXECUTIVE CV ==================== -->
   <div class="cv-section visible" id="cv-executive">
@@ -552,13 +585,169 @@
 
   </div>
 
+  <!-- ==================== DESIGN (SIDEBAR LAYOUT) ==================== -->
+  <div class="cv-section" id="cv-design">
+    <div class="design-layout">
+
+      <aside class="design-sidebar">
+        <div class="d-name">Andrew Hansford</div>
+        <div class="d-tagline">Delivery Lead | Delivery Transformation & AI-Native Practices | Multi-Team Data & Technology Coordination</div>
+
+        <div class="d-heading">Contact</div>
+        <div class="d-list">
+          Morrinsville, Waikato<br>
+          +64 21 315 104<br>
+          andrew@zeroinon.kiwi<br>
+          zeroinon.kiwi<br>
+          linkedin.com/in/ahansfordnz
+        </div>
+
+        <div class="d-heading">Capabilities</div>
+        <div class="d-list">
+          Programme &amp; portfolio delivery<br>
+          Delivery stabilisation &amp; transformation<br>
+          Vendor leadership &amp; cost governance<br>
+          Requirements elicitation &amp; BA<br>
+          People leadership &amp; capability uplift<br>
+          SaaS &amp; enterprise platform delivery<br>
+          RAIDD governance &amp; benefits realisation<br>
+          BPMN process mapping<br>
+          Cross-functional coordination
+        </div>
+
+        <div class="d-heading">Tools</div>
+        <div class="d-list">
+          MS Project &middot; Jira<br>
+          Power BI &middot; Power Automate
+        </div>
+
+        <div class="d-heading">Education</div>
+        <div class="d-list">
+          MSc (Hons), Earth &amp; Ocean Sciences<br>
+          BSc, Earth &amp; Ocean Sciences<br>
+          University of Waikato
+        </div>
+
+        <div class="d-heading">Certifications</div>
+        <div class="d-list">
+          PRINCE2 Practitioner<br>
+          ITIL Practitioner<br>
+          Agile Practitioner<br>
+          Certified Scrum Product Owner<br>
+          CIMS Level 2 &amp; 4
+        </div>
+
+        <div class="d-heading">Awards</div>
+        <div class="d-list">
+          Excellence in GIS Award<br>
+          Canterbury Earthquake<br>Citation of Distinction
+        </div>
+      </aside>
+
+      <main class="design-main">
+
+        <div class="section-heading">Profile</div>
+        <p class="body-text">Delivery Lead with over 20 years' experience delivering transformation and embedding new ways of working across complex, multi-team technology and data programmes of work. Proven at coordinating planning, dependencies, and priorities across multiple teams, unblocking risks and issues, and balancing strategic thinking with hands-on delivery support. Brings genuine AI-informed practices and is currently designing AI-enabled delivery and project management tooling, in conjunction with deep data and technology delivery credentials across local and central government and private sector.</p>
+
+        <div class="section-heading">Selected Enterprise Outcomes</div>
+        <ul class="cv-list">
+          <li>Zero In On: designing AI-enabled delivery and project management tooling concepts; applying AI-informed thinking to programme and project management</li>
+          <li>Auckland Transport: delivered Phase 1 Traffic Optimisation with Google and NGIS using AI-driven analytics; initiated enterprise data pipelines using Informatica; managed complex vendor, risk, and RAIDD governance</li>
+          <li>Toitū Te Whenua (LINZ): led agile (Kanban) delivery of the Connected Property programme; established delivery processes and a fit-for-purpose operating model across 52 councils nationally</li>
+          <li>Western Bay of Plenty District Council: designed and implemented a fit-for-purpose Project Management Framework; established a Community of Practice; aligned delivery practices across the organisation</li>
+          <li>Ministry for Primary Industries: led AI proof-of-concepts using satellite imagery and machine learning; bridged business and technical teams to deliver practical outcomes</li>
+        </ul>
+
+        <div class="section-heading">Professional Experience</div>
+
+        <div class="role-block">
+          <p class="role-title">Director & Chief Problem Solver</p>
+          <p class="role-meta">Zero In On Limited | March 2022 – Present</p>
+          <ul class="cv-list">
+            <li>Currently developing Zervo — an AI-enabled programme governance platform for portfolio visibility, gateway reviews, and delivery reporting</li>
+            <li>Designed and delivered delivery frameworks, governance structures, and operating models for client engagements</li>
+            <li>Applied AI-informed thinking to programme and project management across public and private sector</li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <p class="role-title">Systems Improvement Lead — Childhood Immunisation</p>
+          <p class="role-meta">Te Whatu Ora (via Zero In On Limited) | May 2025 – Present</p>
+          <ul class="cv-list">
+            <li>Led discovery and gap analysis across six Midland districts to understand current-state clinical coordination models and identify system failures</li>
+            <li>Coordinated delivery across PHOs, Hauora Māori Services, Pacific Health providers, Outreach Immunisation Services, and primary care — five distinct provider groups</li>
+            <li>Developed BPMN process maps and a Gap Register of 38 gaps; applied RASCI frameworks to clarify accountability at NHI level</li>
+            <li>Designed future-state coordination models, escalation pathways, and regional reporting structures</li>
+            <li>Operated within a four-phase delivery structure with formal Steering Group governance and equity lens applied throughout</li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <p class="role-title">Senior Project Manager — AI, Data & Analytics</p>
+          <p class="role-meta">Auckland Transport (via Zero In On Limited) | Oct 2024 – Feb 2026</p>
+          <ul class="cv-list">
+            <li>Led $2M+ software and data portfolio across Digital Twin (BIM data integration), AI-enabled Traffic Optimisation (Google and NGIS), legacy web application migration to cloud, Fare Review data platform, and enterprise data pipelines via Informatica</li>
+            <li>Managed four concurrent delivery squads; used Microsoft Project for critical path and Jira for squad oversight</li>
+            <li>RAIDD governance implemented across all workstreams; overhead reduced by ~20%</li>
+            <li>Delivered Phase 1 Traffic Optimisation — achieved cross-platform data schema compatibility and identified key datasets for predictive modelling</li>
+            <li>Managed migration of legacy web applications to modern cloud platform, improving performance, scalability, and mitigating operational risk</li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <p class="role-title">Technical Services Manager</p>
+          <p class="role-meta">SealesWinslow (via Zero In On Limited) | Jun 2023 – Sep 2024</p>
+          <ul class="cv-list">
+            <li>Managed enterprise systems and operational technology portfolio across a manufacturing environment</li>
+            <li>Reduced vendor dependency by 75% through capability uplift and insourcing; improved system uptime to 99%</li>
+            <li>Coached and mentored senior systems analysts; improved business process efficiency</li>
+            <li>Supported Ballance sale to Farmlands transition; coordinated Spark device and service changeover</li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <p class="role-title">GIS Manager</p>
+          <p class="role-meta">WEL Networks | Sep 2022 – Feb 2023</p>
+          <ul class="cv-list">
+            <li>Led eight direct reports; stabilised at-risk Utility Network Transformation programme</li>
+            <li>Reset vendor engagement; introduced delivery discipline improving visibility and confidence</li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <p class="role-title">Connected Property Delivery Lead / Acting Manager</p>
+          <p class="role-meta">Toitū Te Whenua — Land Information New Zealand | Jun 2021 – Apr 2022</p>
+          <ul class="cv-list">
+            <li>Led end-to-end delivery of the Connected Property Data Management System (~$500K)</li>
+            <li>Delivered Connected Property Data Management Framework and NZ Properties Data on LINZ Data Service</li>
+            <li>Established delivery processes, vendor management, and fit-for-purpose operating model</li>
+            <li>Onboarded 80%+ of councils nationally under tight statutory timelines</li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <p class="role-title">Geospatial Practice Lead</p>
+          <p class="role-meta">Ministry for Primary Industries | Feb 2019 – Jun 2021</p>
+          <ul class="cv-list">
+            <li>Led delivery of the enterprise geospatial platform roadmap across nine business units</li>
+            <li>Negotiated $1M enterprise licence; decommissioned 29 servers as part of platform rationalisation</li>
+            <li>Led AI proof-of-concepts using satellite imagery and machine learning</li>
+            <li>Managed hardware and software lifecycle refresh across the organisation</li>
+          </ul>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
 </div>
 
 <script>
 const taglines = {
   executive: 'Data & Analytics Leadership | Health Sector | AI & Digital Transformation',
   delivery: 'Delivery Lead | Delivery Transformation & AI-Native Practices | Multi-Team Data & Technology Coordination',
-  advisory: 'AI Adoption & Capability Building | Workflow Improvement | People-Centred Change'
+  advisory: 'AI Adoption & Capability Building | Workflow Improvement | People-Centred Change',
+  design: 'Delivery Lead | Delivery Transformation & AI-Native Practices | Multi-Team Data & Technology Coordination'
 };
 
 function showCV(type) {
@@ -566,7 +755,17 @@ function showCV(type) {
   document.querySelectorAll('.cv-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('cv-' + type).classList.add('visible');
   document.querySelector('[onclick="showCV(\'' + type + '\')"]').classList.add('active');
-  document.getElementById('cv-tagline').textContent = taglines[type];
+
+  const page = document.querySelector('.cv-page');
+  const header = document.getElementById('shared-header');
+  if (type === 'design') {
+    page.classList.add('full-bleed');
+    header.classList.add('hidden');
+  } else {
+    page.classList.remove('full-bleed');
+    header.classList.remove('hidden');
+    document.getElementById('cv-tagline').textContent = taglines[type];
+  }
 }
 </script>
 
