@@ -147,16 +147,13 @@
   .design-main { flex-grow: 1; padding: 44px 40px; min-width: 0; }
   .design-main .section-heading:first-child { margin-top: 0; }
 
-  @media print {
-    .cv-page.full-bleed { padding: 0; max-width: 100%; }
-    .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
-
   /* PRINT */
   @media print {
     .selector-bar { display: none; }
     body { background: white; }
     .cv-page { margin: 0; box-shadow: none; padding: 40px 50px; max-width: 100%; }
+    .cv-page.full-bleed { padding: 0; }
+    .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .cv-section { display: none; }
     .cv-section.visible { display: block; }
   }
