@@ -123,14 +123,19 @@
   .cv-section.visible { display: block; }
 
   /* DESIGN TAB — sidebar layout */
-  .cv-page.full-bleed { max-width: 900px; padding: 0; overflow: hidden; }
+  .cv-page.full-bleed {
+    max-width: 900px;
+    padding: 0;
+    overflow: hidden;
+    background: linear-gradient(to right, var(--navy) 0, var(--navy) 250px, #fff 250px, #fff 100%);
+  }
   .shared-header.hidden { display: none; }
 
   .design-layout { display: flex; align-items: stretch; }
   .design-sidebar {
     width: 250px;
     flex-shrink: 0;
-    background: var(--navy);
+    background: transparent;
     color: #fff;
     padding: 44px 28px;
   }
@@ -154,9 +159,12 @@
     body { background: white; }
     .cv-page { margin: 0; box-shadow: none; padding: 40px 50px; max-width: 100%; }
     .cv-page.full-bleed { padding: 0; }
-    .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cv-page.full-bleed, .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .cv-section { display: none; }
     .cv-section.visible { display: block; }
+    .role-block { break-inside: avoid; page-break-inside: avoid; }
+    ul.cv-list li { break-inside: avoid; page-break-inside: avoid; }
+    .section-heading { break-after: avoid; page-break-after: avoid; }
   }
 </style>
 </head>
