@@ -447,14 +447,13 @@
               </div>
             </div>
             <div class="row-actions" style="justify-content:flex-start">
-              <button class="save-btn" id="profile-save-btn">Save changes</button>
-              <span class="save-status" id="profile-save-status">Saved</span>
+              <span class="save-status show" id="profile-save-status">All changes saved</span>
             </div>
           </div>
         </div>
       </div>
     </section>
-    <section class="type-section" id="lenses-section" style="margin-bottom:34px">
+    <section class="type-section collapsed" id="lenses-section" style="margin-bottom:34px">
       <div class="type-header">
         <h2><span class="type-chev">▾</span>Lenses (CV tagline per view)</h2>
       </div>
@@ -463,8 +462,7 @@
           <div class="role-body" style="display:block;border-top:none;padding-top:14px" id="lenses-wrap"></div>
         </div>
         <div class="row-actions" style="justify-content:flex-start;margin-top:12px">
-          <button class="save-btn" id="lenses-save-btn">Save changes</button>
-          <span class="save-status" id="lenses-save-status">Saved</span>
+          <span class="save-status show" id="lenses-save-status">All changes saved</span>
         </div>
       </div>
     </section>
@@ -588,6 +586,65 @@ function fmtDate(d){
 // Work and Education are ranges (blank end = ongoing); Certificate and Award are a single achieved-on date.
 const RANGE_TYPES = new Set(["Work","Education"]);
 
+// ---- Autosave ----
+// Every editable section registers itself here. Typing marks it dirty; a 30s
+// tick (or an immediate flush on collapse/navigate-away) saves anything dirty.
+const AUTOSAVE_INTERVAL_MS = 30000;
+const autosaveTargets = [];
+
+function registerAutosave(container, saveFn, statusEl, name){
+  const target = { dirty:false, saving:false, save:saveFn, statusEl, name };
+  autosaveTargets.push(target);
+  setAutosaveStatus(target, "saved");
+  container.addEventListener("input", ()=> markDirty(target));
+  return target;
+}
+
+function markDirty(target){
+  if (!target || target.saving) return;
+  target.dirty = true;
+  setAutosaveStatus(target, "dirty");
+}
+
+function setAutosaveStatus(target, state){
+  if (!target.statusEl) return;
+  target.statusEl.classList.add("show");
+  if (state === "dirty") target.statusEl.textContent = "Unsaved changes";
+  else if (state === "saving") target.statusEl.textContent = "Saving\u2026";
+  else target.statusEl.textContent = "All changes saved";
+}
+
+async function flushTarget(target){
+  if (!target || !target.dirty || target.saving) return;
+  target.saving = true;
+  setAutosaveStatus(target, "saving");
+  try {
+    await target.save();
+    target.dirty = false;
+    setAutosaveStatus(target, "saved");
+  } catch(e){
+    toast("Autosave failed" + (target.name ? ` (${target.name})` : "") + ": " + (e && e.message ? e.message : e));
+    setAutosaveStatus(target, "dirty");
+  } finally {
+    target.saving = false;
+  }
+}
+
+async function flushAllDirty(){
+  for (const t of autosaveTargets){
+    if (t.dirty) await flushTarget(t);
+  }
+}
+
+setInterval(flushAllDirty, AUTOSAVE_INTERVAL_MS);
+
+window.addEventListener("beforeunload", (e)=>{
+  if (autosaveTargets.some(t=>t.dirty)){
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+
 function dateLabel(role, typeName){
   const start = fmtDate(role.start_date);
   if (RANGE_TYPES.has(typeName)){
@@ -597,11 +654,19 @@ function dateLabel(role, typeName){
   return start || "";
 }
 
+function dateSortKey(role, typeName){
+  if (RANGE_TYPES.has(typeName)){
+    const endKey = role.end_date ? role.end_date : "9999-12-31"; // ongoing/Present sorts as most recent
+    return `${endKey}|${role.start_date||""}`;
+  }
+  return role.start_date || "";
+}
+
 // ---- Render ----
 function render(){
   sectionsEl.innerHTML = "";
   TYPES.forEach(type=>{
-    const rolesOfType = ROLES.filter(r=>r.type_id===type.id).sort((a,b)=>b.sort_order-a.sort_order);
+    const rolesOfType = ROLES.filter(r=>r.type_id===type.id).sort((a,b)=>dateSortKey(b, type.name).localeCompare(dateSortKey(a, type.name)));
 
     const section = document.createElement("section");
     section.className = "type-section collapsed";
@@ -648,6 +713,7 @@ function renderRoleCard(role, typeName){
   const card = document.createElement("div");
   card.className = "role-card";
   card.dataset.roleId = role.id;
+  let roleAutosave; // assigned below once the card body exists; closures read it lazily
 
   const summary = document.createElement("div");
   summary.className = "role-summary";
@@ -659,7 +725,11 @@ function renderRoleCard(role, typeName){
     <div class="dates">${dateLabel(role, typeName)}</div>
     <div class="chev">\u25B8</div>
   `;
-  summary.onclick = ()=> card.classList.toggle("open");
+  summary.onclick = ()=>{
+    const wasOpen = card.classList.contains("open");
+    card.classList.toggle("open");
+    if (wasOpen) flushTarget(roleAutosave); // save immediately on collapse
+  };
   card.appendChild(summary);
 
   const body = document.createElement("div");
@@ -713,8 +783,9 @@ function renderRoleCard(role, typeName){
 
   const bulletsWrap = document.createElement("div");
   bulletsWrap.className = "bullets-wrap";
+  const notifyBulletsChanged = ()=> body.dispatchEvent(new Event("input", {bubbles:true}));
   bulletsForRole(role.id).forEach(b=>{
-    bulletsWrap.appendChild(renderBulletRow(b));
+    bulletsWrap.appendChild(renderBulletRow(b, notifyBulletsChanged));
   });
   body.appendChild(bulletsWrap);
 
@@ -722,9 +793,10 @@ function renderRoleCard(role, typeName){
   addBulletBtn.className = "add-bullet-btn";
   addBulletBtn.textContent = "+ Add bullet";
   addBulletBtn.onclick = ()=>{
-    const row = renderBulletRow({ id: null, bullet_text: "", sort_order: bulletsWrap.children.length + 1, role_id: role.id });
+    const row = renderBulletRow({ id: null, bullet_text: "", sort_order: bulletsWrap.children.length + 1, role_id: role.id }, notifyBulletsChanged);
     bulletsWrap.appendChild(row);
     row.querySelector("textarea").focus();
+    notifyBulletsChanged();
   };
   body.appendChild(addBulletBtn);
 
@@ -732,20 +804,19 @@ function renderRoleCard(role, typeName){
   actions.className = "row-actions";
   actions.innerHTML = `
     <div>
-      <button class="save-btn">Save changes</button>
-      <span class="save-status">Saved</span>
+      <span class="save-status show">All changes saved</span>
     </div>
     <button class="delete-role-btn">Delete this entry</button>
   `;
-  actions.querySelector(".save-btn").onclick = (e)=>{ e.stopPropagation(); saveRole(card, role); };
   actions.querySelector(".delete-role-btn").onclick = (e)=>{ e.stopPropagation(); deleteRole(role); };
   body.appendChild(actions);
 
   card.appendChild(body);
+  roleAutosave = registerAutosave(body, ()=>saveRole(card, role), actions.querySelector(".save-status"), role.title || "entry");
   return card;
 }
 
-function renderBulletRow(bullet){
+function renderBulletRow(bullet, onChange){
   const row = document.createElement("div");
   row.className = "bullet-row";
   row.dataset.bulletId = bullet.id || "";
@@ -753,7 +824,7 @@ function renderBulletRow(bullet){
     <textarea rows="2">${escapeHtml(bullet.bullet_text)}</textarea>
     <button class="icon-btn" title="Remove bullet">\u2715</button>
   `;
-  row.querySelector(".icon-btn").onclick = ()=> row.remove();
+  row.querySelector(".icon-btn").onclick = ()=>{ row.remove(); if (onChange) onChange(); };
   return row;
 }
 
@@ -822,13 +893,29 @@ async function saveRole(card, role){
     await sb.from("cv_bullets").delete().eq("id", id);
   }
 
-  const status = card.querySelector(".save-status");
-  status.classList.add("show");
-  setTimeout(()=>status.classList.remove("show"), 1500);
+  // Keep local state in sync without a full reload/re-render, so autosaving
+  // this card never disturbs any other card the user has open elsewhere.
+  Object.assign(role, payload);
+  role.id = roleId;
+  card.dataset.roleId = roleId;
+  BULLETS = BULLETS.filter(b=>b.role_id !== roleId);
+  bulletRows.forEach((r,i)=>{
+    const text = r.querySelector("textarea").value.trim();
+    if (!text) return;
+    const id = r.dataset.bulletId || keepIds[i];
+    r.dataset.bulletId = id;
+    BULLETS.push({ id, role_id: roleId, bullet_text: text, sort_order: i+1 });
+  });
 
-  await loadAll();
-  const reopened = sectionsEl.querySelector(`.role-card[data-role-id="${roleId}"]`);
-  if (reopened) reopened.classList.add("open");
+  const typeName = (TYPES.find(t=>t.id===role.type_id)||{}).name || "";
+  const titleEl = card.querySelector(".role-summary .title");
+  const orgEl = card.querySelector(".role-summary .org");
+  const datesEl = card.querySelector(".role-summary .dates");
+  if (titleEl) titleEl.textContent = role.title || "(untitled)";
+  if (orgEl) orgEl.textContent = role.org || "";
+  if (datesEl) datesEl.textContent = dateLabel(role, typeName);
+  // Note: the list position (most-recent-first) only re-sorts on next full
+  // page load, since we deliberately avoid rebuilding the list here.
 }
 
 async function deleteRole(role){
@@ -844,6 +931,13 @@ document.querySelector('#profile-section .type-header h2').onclick = ()=>{
   const sec = document.getElementById('profile-section');
   sec.classList.toggle('collapsed');
   if (!sec.classList.contains('collapsed')) autoGrowAll(sec);
+  else flushTarget(profileAutosave);
+};
+
+document.querySelector('#lenses-section .type-header h2').onclick = ()=>{
+  const sec = document.getElementById('lenses-section');
+  sec.classList.toggle('collapsed');
+  if (sec.classList.contains('collapsed')) flushTarget(lensesAutosave);
 };
 
 function linkHrefFor(kind, value){
@@ -863,10 +957,11 @@ function linkHrefFor(kind, value){
   input.addEventListener("input", ()=>{ link.href = linkHrefFor(kind, input.value); });
 });
 
-function makeTagList(wrapId, entryId){
+function makeTagList(wrapId, entryId, onChange){
   const wrap = document.getElementById(wrapId);
   const entry = document.getElementById(entryId);
-  function add(text){
+  function notify(silent){ if (!silent && onChange) onChange(); }
+  function add(text, silent){
     text = (text||"").trim();
     if (!text) return;
     const tag = document.createElement("span");
@@ -877,12 +972,14 @@ function makeTagList(wrapId, entryId){
     rm.type = "button";
     rm.textContent = "\u2715";
     rm.title = "Remove";
-    rm.onclick = ()=> tag.remove();
+    rm.onclick = ()=>{ tag.remove(); notify(); };
     tag.appendChild(rm);
     wrap.insertBefore(tag, entry);
+    notify(silent);
   }
-  function clear(){
+  function clear(silent){
     wrap.querySelectorAll(".tag").forEach(t=>t.remove());
+    notify(silent);
   }
   function getAll(){
     return Array.from(wrap.querySelectorAll(".tag")).map(t=>t.dataset.text);
@@ -894,7 +991,7 @@ function makeTagList(wrapId, entryId){
       entry.value = "";
     } else if (e.key === "Backspace" && entry.value === ""){
       const tags = wrap.querySelectorAll(".tag");
-      if (tags.length) tags[tags.length-1].remove();
+      if (tags.length){ tags[tags.length-1].remove(); notify(); }
     }
   });
   entry.addEventListener("blur", ()=>{
@@ -904,9 +1001,10 @@ function makeTagList(wrapId, entryId){
   return { add, clear, getAll };
 }
 
-const hobbiesTags = makeTagList("hobbies-input", "hobby-entry");
-const capabilitiesTags = makeTagList("capabilities-input", "capability-entry");
-const toolsTags = makeTagList("tools-input", "tool-entry");
+let profileAutosave; // registered further down, once loaded; tag edits mark it dirty via this closure
+const hobbiesTags = makeTagList("hobbies-input", "hobby-entry", ()=>markDirty(profileAutosave));
+const capabilitiesTags = makeTagList("capabilities-input", "capability-entry", ()=>markDirty(profileAutosave));
+const toolsTags = makeTagList("tools-input", "tool-entry", ()=>markDirty(profileAutosave));
 
 const tagListsByName = { hobbies: hobbiesTags, capabilities: capabilitiesTags, tools: toolsTags };
 document.querySelectorAll(".clear-all-btn[data-clear]").forEach(btn=>{
@@ -932,21 +1030,21 @@ async function loadProfile(){
 
   const { data: hobbies, error: hErr } = await sb.from("cv_hobbies").select("*").order("sort_order");
   if (hErr){ toast("Couldn't load hobbies: " + hErr.message); return; }
-  hobbiesTags.clear();
-  hobbies.forEach(h=> hobbiesTags.add(h.hobby_text));
+  hobbiesTags.clear(true);
+  hobbies.forEach(h=> hobbiesTags.add(h.hobby_text, true));
 
   const { data: capabilities, error: cErr } = await sb.from("cv_capabilities").select("*").order("sort_order");
   if (cErr){ toast("Couldn't load capabilities: " + cErr.message); return; }
-  capabilitiesTags.clear();
-  capabilities.forEach(c=> capabilitiesTags.add(c.item_text));
+  capabilitiesTags.clear(true);
+  capabilities.forEach(c=> capabilitiesTags.add(c.item_text, true));
 
   const { data: tools, error: tErr } = await sb.from("cv_tools").select("*").order("sort_order");
   if (tErr){ toast("Couldn't load tools: " + tErr.message); return; }
-  toolsTags.clear();
-  tools.forEach(t=> toolsTags.add(t.item_text));
+  toolsTags.clear(true);
+  tools.forEach(t=> toolsTags.add(t.item_text, true));
 }
 
-document.getElementById("profile-save-btn").addEventListener("click", async ()=>{
+async function saveProfile(){
   const payload = {
     summary: document.getElementById("profile-summary").value,
     leadership_style: document.getElementById("profile-leadership-style").value,
@@ -957,7 +1055,7 @@ document.getElementById("profile-save-btn").addEventListener("click", async ()=>
     location: document.getElementById("profile-location").value,
   };
   const { error } = await sb.from("cv_profile").update(payload).eq("id",1);
-  if (error){ toast("Couldn't save profile: " + error.message); return; }
+  if (error) throw new Error(error.message);
 
   const hobbyTexts = hobbiesTags.getAll();
   await sb.from("cv_hobbies").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -977,11 +1075,15 @@ document.getElementById("profile-save-btn").addEventListener("click", async ()=>
     await sb.from("cv_tools").insert(toolTexts.map((text, i)=>({ item_text: text, sort_order: i+1 })));
   }
 
-  const status = document.getElementById("profile-save-status");
-  status.classList.add("show");
-  setTimeout(()=>status.classList.remove("show"), 1500);
   await loadProfile();
-});
+}
+
+profileAutosave = registerAutosave(
+  document.querySelector('#profile-section .role-body'),
+  saveProfile,
+  document.getElementById("profile-save-status"),
+  "profile"
+);
 
 checkSession();
 
@@ -1013,7 +1115,7 @@ async function loadLenses(){
   data.forEach(l => wrap.appendChild(renderLensRow(l)));
 }
 
-document.getElementById("lenses-save-btn").addEventListener("click", async ()=>{
+async function saveLenses(){
   const rows = document.querySelectorAll("#lenses-wrap [data-lens-id]");
   for (const row of rows){
     const payload = {
@@ -1021,13 +1123,17 @@ document.getElementById("lenses-save-btn").addEventListener("click", async ()=>{
       tagline: row.querySelector(".lens-tagline").value,
     };
     const { error } = await sb.from("cv_lenses").update(payload).eq("id", row.dataset.lensId);
-    if (error){ toast("Couldn't save lens: " + error.message); return; }
+    if (error) throw new Error(error.message);
   }
-  const status = document.getElementById("lenses-save-status");
-  status.classList.add("show");
-  setTimeout(()=>status.classList.remove("show"), 1500);
   await loadLenses();
-});
+}
+
+let lensesAutosave = registerAutosave(
+  document.getElementById("lenses-wrap"),
+  saveLenses,
+  document.getElementById("lenses-save-status"),
+  "lenses"
+);
 
 </script>
 </body>
