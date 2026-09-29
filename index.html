@@ -95,6 +95,8 @@
     background: var(--navy);
     color: #fff;
     padding: 44px 28px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
   .design-sidebar .d-name { font-size: 24px; font-weight: 300; margin-bottom: 4px; }
   .design-sidebar .d-tagline { font-size: 11px; font-weight: 300; color: #cfe0f2; line-height: 1.5; margin-bottom: 28px; }
@@ -109,7 +111,7 @@
   .design-sidebar .d-list a:hover { text-decoration: underline; }
   .design-sidebar .d-list-2col { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
 
-  .design-main { flex-grow: 1; padding: 44px 40px; min-width: 0; }
+  .design-main { flex-grow: 1; padding: 44px 40px; min-width: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
   .design-main .section-heading:first-child { margin-top: 0; }
 
   .section-heading {
@@ -150,7 +152,7 @@
   }
   .zio-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
-  @page { margin: 12mm 0; }
+  @page { margin: 0; }
   @media print {
     .selector-bar { display: none; }
     .zio-toggle { display: none; }
