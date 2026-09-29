@@ -199,6 +199,8 @@ function yearOnly(dateStr){
 let LENSES = [];
 let currentLensKey = null;
 let PROFILE = null;
+let WORK_ROLES = [];
+let BULLETS_BY_ROLE = {};
 
 function renderLensButtons(){
   const wrap = document.getElementById("lens-buttons");
@@ -212,6 +214,34 @@ function renderLensButtons(){
   });
 }
 
+function renderRoleBlock(r){
+  const start = monthYear(r.start_date);
+  const end = r.end_date ? monthYear(r.end_date) : "Present";
+  const dateRange = start ? (start + " \u2013 " + end) : "";
+  const metaParts = [r.org, dateRange, r.location].filter(Boolean);
+  let roleBullets = (BULLETS_BY_ROLE[r.id]||[]).sort(function(a,b){return a.sort_order-b.sort_order;});
+
+  if (r.org === "Zero In On Limited"){
+    const lens = LENSES.find(l=>l.key===currentLensKey);
+    const mode = lens ? lens.zio_display : "full";
+    if (mode === "hidden") return "";
+    if (mode === "limited") roleBullets = roleBullets.slice(0,3);
+  }
+
+  return '<div class="role-block">' +
+    '<p class="role-title">' + escapeHtml(r.title) + '</p>' +
+    '<p class="role-meta">' + metaParts.map(escapeHtml).join(" | ") + '</p>' +
+    (r.summary ? '<p class="role-summary">' + escapeHtml(r.summary) + '</p>' : "") +
+    (roleBullets.length ? '<ul class="cv-list">' + roleBullets.map(function(b){ return '<li>' + escapeHtml(b.bullet_text) + '</li>'; }).join("") + '</ul>' : "") +
+    '</div>';
+}
+
+function renderRoleBlocks(){
+  const el = document.getElementById("role-blocks");
+  if (!el) return;
+  el.innerHTML = WORK_ROLES.map(renderRoleBlock).join("");
+}
+
 function setLens(key){
   currentLensKey = key;
   renderLensButtons();
@@ -222,6 +252,7 @@ function setLens(key){
   if (leadershipEl){
     leadershipEl.style.display = (key === "executive") ? "block" : "none";
   }
+  renderRoleBlocks();
 }
 
 async function loadCV(){
@@ -271,6 +302,8 @@ async function loadCV(){
   const eduRoles = typeByName["Education"] ? (rolesByType[typeByName["Education"].id]||[]) : [];
   const certRoles = typeByName["Certificate"] ? (rolesByType[typeByName["Certificate"].id]||[]) : [];
   const awardRoles = typeByName["Award"] ? (rolesByType[typeByName["Award"].id]||[]) : [];
+  WORK_ROLES = workRoles;
+  BULLETS_BY_ROLE = bulletsByRole;
 
   const contactLines = [];
   if (profile.location) contactLines.push(escapeHtml(profile.location));
@@ -316,20 +349,6 @@ async function loadCV(){
       return '<div class="d-heading">' + s.heading + '</div><div class="d-list">' + s.html + '</div>';
     }).join("");
 
-  const roleBlocksHtml = workRoles.map(function(r){
-    const start = monthYear(r.start_date);
-    const end = r.end_date ? monthYear(r.end_date) : "Present";
-    const dateRange = start ? (start + " \u2013 " + end) : "";
-    const metaParts = [r.org, dateRange, r.location].filter(Boolean);
-    const roleBullets = (bulletsByRole[r.id]||[]).sort(function(a,b){return a.sort_order-b.sort_order;});
-    return '<div class="role-block">' +
-      '<p class="role-title">' + escapeHtml(r.title) + '</p>' +
-      '<p class="role-meta">' + metaParts.map(escapeHtml).join(" | ") + '</p>' +
-      (r.summary ? '<p class="role-summary">' + escapeHtml(r.summary) + '</p>' : "") +
-      (roleBullets.length ? '<ul class="cv-list">' + roleBullets.map(function(b){ return '<li>' + escapeHtml(b.bullet_text) + '</li>'; }).join("") + '</ul>' : "") +
-      '</div>';
-  }).join("");
-
   const mainHtml =
     '<div class="section-heading">Profile</div>' +
     '<p class="body-text">' + escapeHtml(profile.summary||"") + '</p>' +
@@ -338,7 +357,7 @@ async function loadCV(){
       '<p class="body-text">' + escapeHtml(profile.leadership_style||"") + '</p>' +
     '</div>' +
     '<div class="section-heading">Professional Experience</div>' +
-    roleBlocksHtml;
+    '<div id="role-blocks"></div>';
 
   document.getElementById("cv-root").innerHTML =
     '<aside class="design-sidebar">' + sidebarHtml + '</aside>' +
