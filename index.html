@@ -108,6 +108,7 @@
   .design-sidebar .d-list { font-size: 11px; font-weight: 300; line-height: 1.85; color: #eaf1f9; }
   .design-sidebar .d-list a { color: #eaf1f9; text-decoration: none; }
   .design-sidebar .d-list a:hover { text-decoration: underline; }
+  .design-sidebar .d-list-2col { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
 
   .design-main { flex-grow: 1; padding: 44px 40px; min-width: 0; }
   .design-main .section-heading:first-child { margin-top: 0; }
@@ -347,23 +348,19 @@ async function loadCV(){
   if (profile.linkedin) contactLines.push('<a href="' + linkHrefFor("linkedin", profile.linkedin) + '" target="_blank">' + escapeHtml(displayFor("linkedin", profile.linkedin)) + '</a>');
 
   const capabilitiesHtml = (capabilities||[]).map(c=>escapeHtml(c.item_text)).join("<br>");
-  const toolsHtml = (tools||[]).map(t=>escapeHtml(t.item_text)).join("<br>");
+  const toolsHtml = (tools && tools.length) ? ('<div class="d-list-2col">' + tools.map(t=>'<div>'+escapeHtml(t.item_text)+'</div>').join("") + '</div>') : "";
   const hobbiesHtml = (hobbies||[]).map(h=>escapeHtml(h.hobby_text)).join(" &middot; ");
 
   const eduHtml = eduRoles.map(r=>{
-    const y1 = yearOnly(r.start_date), y2 = yearOnly(r.end_date);
-    const years = (y1 && y2 && y1 !== y2) ? (y1 + "\u2013" + y2) : (y2 || y1 || "");
-    return escapeHtml(r.title) + (r.org ? ", " + escapeHtml(r.org) : "") + (years ? " (" + years + ")" : "");
+    return escapeHtml(r.title) + (r.org ? ", " + escapeHtml(r.org) : "");
   }).join("<br>");
 
   const certHtml = certRoles.map(r=>{
-    const y = yearOnly(r.start_date);
-    return escapeHtml(r.title) + (y ? " (" + y + ")" : "");
+    return escapeHtml(r.title);
   }).join("<br>");
 
   const awardHtml = awardRoles.map(r=>{
-    const y = yearOnly(r.start_date);
-    return escapeHtml(r.title) + (r.org ? ", " + escapeHtml(r.org) : "") + (y ? " (" + y + ")" : "");
+    return escapeHtml(r.title) + (r.org ? ", " + escapeHtml(r.org) : "");
   }).join("<br>");
 
   const sidebarSections = [
