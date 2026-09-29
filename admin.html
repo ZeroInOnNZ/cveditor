@@ -962,7 +962,7 @@ checkSession();
 function renderLensRow(lens){
   const row = document.createElement("div");
   row.className = "field-row";
-  row.style.gridTemplateColumns = "1fr 2fr 1fr";
+  row.style.gridTemplateColumns = "1fr 2fr";
   row.dataset.lensId = lens.id;
   row.dataset.lensKey = lens.key;
   row.innerHTML = `
@@ -973,14 +973,6 @@ function renderLensRow(lens){
     <div>
       <label>Tagline</label>
       <input type="text" class="lens-tagline" value="${escapeHtml(lens.tagline)}">
-    </div>
-    <div>
-      <label>Zero In On role</label>
-      <select class="lens-zio-display">
-        <option value="full" ${lens.zio_display==="full"?"selected":""}>Full (all bullets)</option>
-        <option value="limited" ${lens.zio_display==="limited"?"selected":""}>Limited (2-3 bullets)</option>
-        <option value="hidden" ${lens.zio_display==="hidden"?"selected":""}>Hidden (don't show role)</option>
-      </select>
     </div>
   `;
   return row;
@@ -1000,7 +992,6 @@ document.getElementById("lenses-save-btn").addEventListener("click", async ()=>{
     const payload = {
       label: row.querySelector(".lens-label").value,
       tagline: row.querySelector(".lens-tagline").value,
-      zio_display: row.querySelector(".lens-zio-display").value,
     };
     const { error } = await sb.from("cv_lenses").update(payload).eq("id", row.dataset.lensId);
     if (error){ toast("Couldn't save lens: " + error.message); return; }
