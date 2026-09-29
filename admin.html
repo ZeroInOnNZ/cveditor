@@ -358,8 +358,14 @@
           <div class="role-body" style="display:block;border-top:none;padding-top:14px">
             <div class="field-row full">
               <div>
-                <label>Summary</label>
+                <label>Personal Summary</label>
                 <textarea id="profile-summary" rows="3"></textarea>
+              </div>
+            </div>
+            <div class="field-row full">
+              <div>
+                <label>Leadership Style</label>
+                <textarea id="profile-leadership-style" rows="3"></textarea>
               </div>
             </div>
             <div class="field-row full">
@@ -819,6 +825,7 @@ async function loadProfile(){
   const { data, error } = await sb.from("cv_profile").select("*").eq("id",1).single();
   if (error){ toast("Couldn't load profile: " + error.message); return; }
   document.getElementById("profile-summary").value = data.summary || "";
+  document.getElementById("profile-leadership-style").value = data.leadership_style || "";
   ["email","phone","website","linkedin","location"].forEach(f=>{
     document.getElementById("profile-"+f).value = data[f] || "";
   });
@@ -836,6 +843,7 @@ async function loadProfile(){
 document.getElementById("profile-save-btn").addEventListener("click", async ()=>{
   const payload = {
     summary: document.getElementById("profile-summary").value,
+    leadership_style: document.getElementById("profile-leadership-style").value,
     email: document.getElementById("profile-email").value,
     phone: document.getElementById("profile-phone").value,
     website: document.getElementById("profile-website").value,
