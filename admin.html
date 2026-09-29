@@ -144,7 +144,18 @@
     margin:0;
     text-transform:uppercase;
     letter-spacing:.4px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    user-select:none;
   }
+  .type-header h2 .type-chev{
+    transition:transform .15s ease;
+    font-size:12px;
+  }
+  .type-section.collapsed .type-chev{transform:rotate(-90deg)}
+  .type-section.collapsed .type-body{display:none}
   .add-role-btn{
     background:#fff;
     border:1px solid var(--navy);
@@ -403,9 +414,21 @@ function bulletsForRole(roleId){
 }
 
 function fmtDate(d){
-  if(!d) return "Present";
+  if(!d) return null;
   const [y,m] = d.split("-");
   return new Date(Number(y), Number(m)-1).toLocaleDateString("en-NZ",{month:"short",year:"numeric"});
+}
+
+// Work and Education are ranges (blank end = ongoing); Certificate and Award are a single achieved-on date.
+const RANGE_TYPES = new Set(["Work","Education"]);
+
+function dateLabel(role, typeName){
+  const start = fmtDate(role.start_date);
+  if (RANGE_TYPES.has(typeName)){
+    const end = fmtDate(role.end_date) || "Present";
+    return `${start||"?"} \u2013 ${end}`;
+  }
+  return start || "";
 }
 
 // ---- Render ----
@@ -419,25 +442,30 @@ function render(){
 
     const header = document.createElement("div");
     header.className = "type-header";
-    header.innerHTML = `<h2>${escapeHtml(type.name)}</h2>`;
+    header.innerHTML = `<h2><span class="type-chev">\u25BE</span>${escapeHtml(type.name)}</h2>`;
+    header.querySelector("h2").onclick = ()=> section.classList.toggle("collapsed");
     const addBtn = document.createElement("button");
     addBtn.className = "add-role-btn";
     addBtn.textContent = "+ Add entry";
-    addBtn.onclick = ()=> addNewRole(type.id);
+    addBtn.onclick = (e)=>{ e.stopPropagation(); addNewRole(type.id); };
     header.appendChild(addBtn);
     section.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "type-body";
 
     if (rolesOfType.length === 0){
       const empty = document.createElement("div");
       empty.className = "empty-state";
       empty.textContent = "No entries yet.";
-      section.appendChild(empty);
+      body.appendChild(empty);
     }
 
     rolesOfType.forEach(role=>{
-      section.appendChild(renderRoleCard(role));
+      body.appendChild(renderRoleCard(role, type.name));
     });
 
+    section.appendChild(body);
     sectionsEl.appendChild(section);
   });
 }
@@ -446,7 +474,8 @@ function escapeHtml(s){
   return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
-function renderRoleCard(role){
+function renderRoleCard(role, typeName){
+  const isRange = RANGE_TYPES.has(typeName);
   const card = document.createElement("div");
   card.className = "role-card";
   card.dataset.roleId = role.id;
@@ -458,7 +487,7 @@ function renderRoleCard(role){
       <div class="title">${escapeHtml(role.title)||"(untitled)"}</div>
       <div class="org">${escapeHtml(role.org)||""}</div>
     </div>
-    <div class="dates">${fmtDate(role.start_date)} \u2013 ${fmtDate(role.end_date)}</div>
+    <div class="dates">${dateLabel(role, typeName)}</div>
     <div class="chev">\u25B8</div>
   `;
   summary.onclick = ()=> card.classList.toggle("open");
@@ -479,13 +508,14 @@ function renderRoleCard(role){
       <input type="text" data-field="org" value="${escapeHtml(role.org)}">
     </div>
     <div>
-      <label>Start date</label>
+      <label>${isRange ? "Start date" : "Date"}</label>
       <input type="date" data-field="start_date" value="${role.start_date||""}">
     </div>
+    ${isRange ? `
     <div>
       <label>End date (blank = present)</label>
       <input type="date" data-field="end_date" value="${role.end_date||""}">
-    </div>
+    </div>` : ""}
     <div>
       <label>Location</label>
       <input type="text" data-field="location" value="${escapeHtml(role.location)}">
@@ -580,7 +610,7 @@ function addNewRole(typeId){
 // ---- Save / delete ----
 async function saveRole(card, role){
   const body = card.querySelector(".role-body");
-  const get = f => body.querySelector(`[data-field="${f}"]`).value;
+  const get = f => { const el = body.querySelector(`[data-field="${f}"]`); return el ? el.value : ""; };
 
   const payload = {
     type_id: role.type_id,
