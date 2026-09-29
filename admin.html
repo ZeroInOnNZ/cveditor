@@ -329,7 +329,70 @@
       <button id="signout-btn">Sign out</button>
     </div>
   </header>
-  <main id="sections"></main>
+  <main>
+    <section class="type-section collapsed" id="profile-section" style="margin-bottom:34px">
+      <div class="type-header">
+        <h2><span class="type-chev">▾</span>Profile</h2>
+      </div>
+      <div class="type-body">
+        <div class="role-card open" style="cursor:default">
+          <div class="role-body" style="display:block;border-top:none;padding-top:14px">
+            <div class="field-row full">
+              <div>
+                <label>Summary</label>
+                <textarea id="profile-summary" rows="3"></textarea>
+              </div>
+            </div>
+            <div class="field-row full">
+              <div>
+                <label>Hobbies</label>
+                <textarea id="profile-hobbies" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="field-row">
+              <div>
+                <label>Email</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="text" id="profile-email" style="margin-bottom:0">
+                  <a id="profile-email-link" href="#" target="_blank" class="icon-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none" title="Open">↗</a>
+                </div>
+              </div>
+              <div>
+                <label>Phone</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="text" id="profile-phone" style="margin-bottom:0">
+                  <a id="profile-phone-link" href="#" target="_blank" class="icon-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none" title="Open">↗</a>
+                </div>
+              </div>
+              <div>
+                <label>Website</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="text" id="profile-website" style="margin-bottom:0">
+                  <a id="profile-website-link" href="#" target="_blank" class="icon-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none" title="Open">↗</a>
+                </div>
+              </div>
+              <div>
+                <label>LinkedIn</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="text" id="profile-linkedin" style="margin-bottom:0">
+                  <a id="profile-linkedin-link" href="#" target="_blank" class="icon-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none" title="Open">↗</a>
+                </div>
+              </div>
+              <div>
+                <label>Location</label>
+                <input type="text" id="profile-location">
+              </div>
+            </div>
+            <div class="row-actions" style="justify-content:flex-start">
+              <button class="save-btn" id="profile-save-btn">Save changes</button>
+              <span class="save-status" id="profile-save-status">Saved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div id="sections"></div>
+  </main>
 </div>
 
 <div id="toast"></div>
@@ -385,6 +448,7 @@ async function boot(){
   loginScreen.style.display = "none";
   app.style.display = "block";
   whoEmailEl.textContent = session.user.email;
+  await loadProfile();
   await loadAll();
 }
 
@@ -438,7 +502,7 @@ function render(){
     const rolesOfType = ROLES.filter(r=>r.type_id===type.id).sort((a,b)=>b.sort_order-a.sort_order);
 
     const section = document.createElement("section");
-    section.className = "type-section";
+    section.className = "type-section collapsed";
 
     const header = document.createElement("div");
     header.className = "type-header";
@@ -670,6 +734,58 @@ async function deleteRole(role){
   }
   await loadAll();
 }
+
+document.querySelector('#profile-section .type-header h2').onclick = ()=>{
+  document.getElementById('profile-section').classList.toggle('collapsed');
+};
+
+function linkHrefFor(kind, value){
+  value = (value||"").trim();
+  if (!value) return "#";
+  if (kind === "email") return "mailto:" + value;
+  if (kind === "phone") return "tel:" + value.replace(/[^\d+]/g,"");
+  if (kind === "website" || kind === "linkedin"){
+    return /^https?:\/\//i.test(value) ? value : "https://" + value;
+  }
+  return "#";
+}
+
+["email","phone","website","linkedin"].forEach(kind=>{
+  const input = document.getElementById("profile-" + kind);
+  const link = document.getElementById("profile-" + kind + "-link");
+  input.addEventListener("input", ()=>{ link.href = linkHrefFor(kind, input.value); });
+});
+
+async function loadProfile(){
+  const { data, error } = await sb.from("cv_profile").select("*").eq("id",1).single();
+  if (error){ toast("Couldn't load profile: " + error.message); return; }
+  document.getElementById("profile-summary").value = data.summary || "";
+  document.getElementById("profile-hobbies").value = data.hobbies || "";
+  ["email","phone","website","linkedin","location"].forEach(f=>{
+    document.getElementById("profile-"+f).value = data[f] || "";
+  });
+  ["email","phone","website","linkedin"].forEach(kind=>{
+    const input = document.getElementById("profile-" + kind);
+    document.getElementById("profile-" + kind + "-link").href = linkHrefFor(kind, input.value);
+  });
+}
+
+document.getElementById("profile-save-btn").addEventListener("click", async ()=>{
+  const payload = {
+    summary: document.getElementById("profile-summary").value,
+    hobbies: document.getElementById("profile-hobbies").value,
+    email: document.getElementById("profile-email").value,
+    phone: document.getElementById("profile-phone").value,
+    website: document.getElementById("profile-website").value,
+    linkedin: document.getElementById("profile-linkedin").value,
+    location: document.getElementById("profile-location").value,
+  };
+  const { error } = await sb.from("cv_profile").update(payload).eq("id",1);
+  if (error){ toast("Couldn't save profile: " + error.message); return; }
+  const status = document.getElementById("profile-save-status");
+  status.classList.add("show");
+  setTimeout(()=>status.classList.remove("show"), 1500);
+});
 
 checkSession();
 </script>
