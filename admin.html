@@ -102,7 +102,7 @@
     background:#fff;
     color:var(--ink);
   }
-  textarea{resize:vertical;min-height:44px}
+  textarea{resize:vertical;min-height:44px;overflow:hidden}
   .primary-btn{
     width:100%;
     background:var(--navy);
@@ -441,6 +441,30 @@ function toast(msg){
   t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"), 1800);
 }
+
+// ---- Auto-growing textareas ----
+function autoGrow(el){
+  if (!el || el.tagName !== "TEXTAREA") return;
+  el.style.height = "auto";
+  el.style.height = (el.scrollHeight + 2) + "px";
+}
+function autoGrowAll(root){
+  (root || document).querySelectorAll("textarea").forEach(autoGrow);
+}
+// Grows as the user types in any textarea, present or future
+document.addEventListener("input", (e)=>{
+  if (e.target && e.target.tagName === "TEXTAREA") autoGrow(e.target);
+});
+// Catch textareas whose value is set programmatically (loadProfile, role/bullet rendering)
+new MutationObserver((mutations)=>{
+  for (const m of mutations){
+    m.addedNodes.forEach(node=>{
+      if (node.nodeType !== 1) return;
+      if (node.tagName === "TEXTAREA") autoGrow(node);
+      else if (node.querySelectorAll) node.querySelectorAll("textarea").forEach(autoGrow);
+    });
+  }
+}).observe(document.body, { childList:true, subtree:true });
 
 // ---- Auth ----
 document.getElementById("login-form").addEventListener("submit", async (e)=>{
@@ -826,6 +850,8 @@ async function loadProfile(){
   if (error){ toast("Couldn't load profile: " + error.message); return; }
   document.getElementById("profile-summary").value = data.summary || "";
   document.getElementById("profile-leadership-style").value = data.leadership_style || "";
+  autoGrow(document.getElementById("profile-summary"));
+  autoGrow(document.getElementById("profile-leadership-style"));
   ["email","phone","website","linkedin","location"].forEach(f=>{
     document.getElementById("profile-"+f).value = data[f] || "";
   });
