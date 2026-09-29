@@ -345,8 +345,9 @@
             </div>
             <div class="field-row full">
               <div>
-                <label>Hobbies</label>
-                <textarea id="profile-hobbies" rows="2"></textarea>
+                <div class="bullets-label" style="margin-top:0">Hobbies</div>
+                <div class="bullets-wrap" id="hobbies-wrap"></div>
+                <button class="add-bullet-btn" id="add-hobby-btn" type="button">+ Add hobby</button>
               </div>
             </div>
             <div class="field-row">
@@ -756,11 +757,29 @@ function linkHrefFor(kind, value){
   input.addEventListener("input", ()=>{ link.href = linkHrefFor(kind, input.value); });
 });
 
+function renderHobbyRow(hobby){
+  const row = document.createElement("div");
+  row.className = "bullet-row";
+  row.dataset.hobbyId = hobby.id || "";
+  row.innerHTML = `
+    <textarea rows="1">${escapeHtml(hobby.hobby_text)}</textarea>
+    <button class="icon-btn" title="Remove hobby" type="button">\u2715</button>
+  `;
+  row.querySelector(".icon-btn").onclick = ()=> row.remove();
+  return row;
+}
+
+document.getElementById("add-hobby-btn").addEventListener("click", ()=>{
+  const wrap = document.getElementById("hobbies-wrap");
+  const row = renderHobbyRow({ id: null, hobby_text: "" });
+  wrap.appendChild(row);
+  row.querySelector("textarea").focus();
+});
+
 async function loadProfile(){
   const { data, error } = await sb.from("cv_profile").select("*").eq("id",1).single();
   if (error){ toast("Couldn't load profile: " + error.message); return; }
   document.getElementById("profile-summary").value = data.summary || "";
-  document.getElementById("profile-hobbies").value = data.hobbies || "";
   ["email","phone","website","linkedin","location"].forEach(f=>{
     document.getElementById("profile-"+f).value = data[f] || "";
   });
@@ -768,12 +787,17 @@ async function loadProfile(){
     const input = document.getElementById("profile-" + kind);
     document.getElementById("profile-" + kind + "-link").href = linkHrefFor(kind, input.value);
   });
+
+  const { data: hobbies, error: hErr } = await sb.from("cv_hobbies").select("*").order("sort_order");
+  if (hErr){ toast("Couldn't load hobbies: " + hErr.message); return; }
+  const wrap = document.getElementById("hobbies-wrap");
+  wrap.innerHTML = "";
+  hobbies.forEach(h=> wrap.appendChild(renderHobbyRow(h)));
 }
 
 document.getElementById("profile-save-btn").addEventListener("click", async ()=>{
   const payload = {
     summary: document.getElementById("profile-summary").value,
-    hobbies: document.getElementById("profile-hobbies").value,
     email: document.getElementById("profile-email").value,
     phone: document.getElementById("profile-phone").value,
     website: document.getElementById("profile-website").value,
@@ -782,9 +806,31 @@ document.getElementById("profile-save-btn").addEventListener("click", async ()=>
   };
   const { error } = await sb.from("cv_profile").update(payload).eq("id",1);
   if (error){ toast("Couldn't save profile: " + error.message); return; }
+
+  const hobbyRows = Array.from(document.querySelectorAll("#hobbies-wrap .bullet-row"));
+  const keepIds = [];
+  for (let i=0; i<hobbyRows.length; i++){
+    const r = hobbyRows[i];
+    const text = r.querySelector("textarea").value.trim();
+    if (!text) continue;
+    if (r.dataset.hobbyId){
+      await sb.from("cv_hobbies").update({ hobby_text: text, sort_order: i+1 }).eq("id", r.dataset.hobbyId);
+      keepIds.push(r.dataset.hobbyId);
+    } else {
+      const { data } = await sb.from("cv_hobbies").insert({ hobby_text: text, sort_order: i+1 }).select().single();
+      if (data) keepIds.push(data.id);
+    }
+  }
+  const { data: existing } = await sb.from("cv_hobbies").select("id");
+  const toDelete = (existing||[]).map(h=>String(h.id)).filter(id=>!keepIds.includes(id));
+  for (const id of toDelete){
+    await sb.from("cv_hobbies").delete().eq("id", id);
+  }
+
   const status = document.getElementById("profile-save-status");
   status.classList.add("show");
   setTimeout(()=>status.classList.remove("show"), 1500);
+  await loadProfile();
 });
 
 checkSession();
