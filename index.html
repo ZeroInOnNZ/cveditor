@@ -86,14 +86,13 @@
     box-shadow: 0 2px 24px rgba(0,0,0,0.08);
     padding: 0;
     overflow: hidden;
-    background: linear-gradient(to right, var(--navy) 0, var(--navy) 315px, #fff 315px, #fff 100%);
   }
 
   .design-layout { display: flex; align-items: stretch; }
   .design-sidebar {
     width: 315px;
     flex-shrink: 0;
-    background: transparent;
+    background: var(--navy);
     color: #fff;
     padding: 44px 28px;
   }
@@ -151,13 +150,14 @@
   }
   .zio-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
-  @page { margin: 0; }
+  @page { margin: 12mm 0; }
   @media print {
     .selector-bar { display: none; }
     .zio-toggle { display: none; }
     body { background: white; }
     .cv-page { margin: 0; box-shadow: none; padding: 0; max-width: 100%; }
     .cv-page, .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .design-sidebar { width: 30%; }
     .role-block { break-inside: avoid; page-break-inside: avoid; }
     ul.cv-list li { break-inside: avoid; page-break-inside: avoid; }
     .section-heading { break-after: avoid; page-break-after: avoid; }
