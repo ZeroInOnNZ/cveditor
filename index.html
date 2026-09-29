@@ -351,9 +351,17 @@ async function loadCV(){
   const toolsHtml = (tools && tools.length) ? ('<div class="d-list-2col">' + tools.map(t=>'<div>'+escapeHtml(t.item_text)+'</div>').join("") + '</div>') : "";
   const hobbiesHtml = (hobbies||[]).map(h=>escapeHtml(h.hobby_text)).join(" &middot; ");
 
-  const eduHtml = eduRoles.map(r=>{
-    return escapeHtml(r.title) + (r.org ? ", " + escapeHtml(r.org) : "");
-  }).join("<br>");
+  const eduGroups = [];
+  eduRoles.forEach(r=>{
+    const org = r.org || "";
+    let group = eduGroups.find(g=>g.org===org);
+    if (!group){ group = { org, titles: [] }; eduGroups.push(group); }
+    group.titles.push(r.title);
+  });
+  const eduHtml = eduGroups.map(function(g){
+    return '<div style="margin-top:8px;font-weight:500;color:#fff">' + escapeHtml(g.org) + '</div>' +
+      g.titles.map(function(t){ return escapeHtml(t); }).join("<br>");
+  }).join("").replace(/^<div style="margin-top:8px;/, '<div style="margin-top:0;');
 
   const certHtml = certRoles.map(r=>{
     return escapeHtml(r.title);
