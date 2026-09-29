@@ -216,6 +216,17 @@
     margin:6px 0 8px;
     color:var(--ink);
   }
+  .clear-all-btn{
+    font-size:12px;
+    font-weight:400;
+    color:var(--muted);
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+  }
+  .clear-all-btn:hover{ color:var(--ink); }
   .bullet-row{
     display:flex;
     gap:8px;
@@ -370,7 +381,10 @@
             </div>
             <div class="field-row full">
               <div>
-                <div class="bullets-label" style="margin-top:0">Hobbies</div>
+                <div class="bullets-label" style="margin-top:0;display:flex;align-items:center;justify-content:space-between">
+                  <span>Hobbies</span>
+                  <button type="button" class="clear-all-btn" data-clear="hobbies">Clear all</button>
+                </div>
                 <div class="tags-input" id="hobbies-input">
                   <input type="text" id="hobby-entry" placeholder="Type a hobby, press Enter">
                 </div>
@@ -378,7 +392,10 @@
             </div>
             <div class="field-row full">
               <div>
-                <div class="bullets-label" style="margin-top:0">Capabilities (sidebar)</div>
+                <div class="bullets-label" style="margin-top:0;display:flex;align-items:center;justify-content:space-between">
+                  <span>Capabilities (sidebar)</span>
+                  <button type="button" class="clear-all-btn" data-clear="capabilities">Clear all</button>
+                </div>
                 <div class="tags-input" id="capabilities-input">
                   <input type="text" id="capability-entry" placeholder="Type a capability, press Enter">
                 </div>
@@ -386,7 +403,10 @@
             </div>
             <div class="field-row full">
               <div>
-                <div class="bullets-label" style="margin-top:0">Tools (sidebar)</div>
+                <div class="bullets-label" style="margin-top:0;display:flex;align-items:center;justify-content:space-between">
+                  <span>Tools (sidebar)</span>
+                  <button type="button" class="clear-all-btn" data-clear="tools">Clear all</button>
+                </div>
                 <div class="tags-input" id="tools-input">
                   <input type="text" id="tool-entry" placeholder="Type a tool, press Enter">
                 </div>
@@ -887,6 +907,13 @@ function makeTagList(wrapId, entryId){
 const hobbiesTags = makeTagList("hobbies-input", "hobby-entry");
 const capabilitiesTags = makeTagList("capabilities-input", "capability-entry");
 const toolsTags = makeTagList("tools-input", "tool-entry");
+
+const tagListsByName = { hobbies: hobbiesTags, capabilities: capabilitiesTags, tools: toolsTags };
+document.querySelectorAll(".clear-all-btn[data-clear]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    tagListsByName[btn.dataset.clear].clear();
+  });
+});
 
 async function loadProfile(){
   const { data, error } = await sb.from("cv_profile").select("*").eq("id",1).single();
