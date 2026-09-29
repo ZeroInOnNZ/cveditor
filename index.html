@@ -135,9 +135,25 @@
 
   .loading-msg { color: #fff; padding: 60px; font-size: 13px; }
 
+  .zio-toggle { display: flex; align-items: center; gap: 4px; }
+  .zio-toggle-label { font-size: 10px; font-weight: 400; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 2px; }
+  .zio-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--muted);
+    background: #fff;
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  .zio-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
   @page { margin: 0; }
   @media print {
     .selector-bar { display: none; }
+    .zio-toggle { display: none; }
     body { background: white; }
     .cv-page { margin: 0; box-shadow: none; padding: 0; max-width: 100%; }
     .cv-page, .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -201,6 +217,7 @@ let currentLensKey = null;
 let PROFILE = null;
 let WORK_ROLES = [];
 let BULLETS_BY_ROLE = {};
+let zioMode = "full"; // session-only: full | partial | none
 
 function renderLensButtons(){
   const wrap = document.getElementById("lens-buttons");
@@ -214,22 +231,39 @@ function renderLensButtons(){
   });
 }
 
+function setZioMode(mode){
+  zioMode = mode;
+  renderRoleBlocks();
+}
+
+function zioToggleHtml(){
+  const opts = [["full","Full"],["partial","Partial"],["none","None"]];
+  return '<div class="zio-toggle">' +
+    '<span class="zio-toggle-label">Zero In On:</span>' +
+    opts.map(function(o){
+      return '<button type="button" class="zio-btn' + (zioMode===o[0]?" active":"") + '" onclick="setZioMode(\'' + o[0] + '\')">' + o[1] + '</button>';
+    }).join("") +
+    '</div>';
+}
+
 function renderRoleBlock(r){
   const start = monthYear(r.start_date);
   const end = r.end_date ? monthYear(r.end_date) : "Present";
   const dateRange = start ? (start + " \u2013 " + end) : "";
   const metaParts = [r.org, dateRange, r.location].filter(Boolean);
   let roleBullets = (BULLETS_BY_ROLE[r.id]||[]).sort(function(a,b){return a.sort_order-b.sort_order;});
+  const isZio = r.org === "Zero In On Limited";
 
-  if (r.org === "Zero In On Limited"){
-    const lens = LENSES.find(l=>l.key===currentLensKey);
-    const mode = lens ? lens.zio_display : "full";
-    if (mode === "hidden") return "";
-    if (mode === "limited") roleBullets = roleBullets.slice(0,3);
+  if (isZio){
+    if (zioMode === "none") return "";
+    if (zioMode === "partial") roleBullets = roleBullets.slice(0,3);
   }
 
   return '<div class="role-block">' +
-    '<p class="role-title">' + escapeHtml(r.title) + '</p>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
+      '<p class="role-title" style="margin-bottom:0">' + escapeHtml(r.title) + '</p>' +
+      (isZio ? zioToggleHtml() : '') +
+    '</div>' +
     '<p class="role-meta">' + metaParts.map(escapeHtml).join(" | ") + '</p>' +
     (r.summary ? '<p class="role-summary">' + escapeHtml(r.summary) + '</p>' : "") +
     (roleBullets.length ? '<ul class="cv-list">' + roleBullets.map(function(b){ return '<li>' + escapeHtml(b.bullet_text) + '</li>'; }).join("") + '</ul>' : "") +
