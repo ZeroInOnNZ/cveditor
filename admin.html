@@ -376,6 +376,22 @@
                 </div>
               </div>
             </div>
+            <div class="field-row full">
+              <div>
+                <div class="bullets-label" style="margin-top:0">Capabilities (sidebar)</div>
+                <div class="tags-input" id="capabilities-input">
+                  <input type="text" id="capability-entry" placeholder="Type a capability, press Enter">
+                </div>
+              </div>
+            </div>
+            <div class="field-row full">
+              <div>
+                <div class="bullets-label" style="margin-top:0">Tools (sidebar)</div>
+                <div class="tags-input" id="tools-input">
+                  <input type="text" id="tool-entry" placeholder="Type a tool, press Enter">
+                </div>
+              </div>
+            </div>
             <div class="field-row">
               <div>
                 <label>Email</label>
@@ -415,6 +431,20 @@
               <span class="save-status" id="profile-save-status">Saved</span>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+    <section class="type-section" id="lenses-section" style="margin-bottom:34px">
+      <div class="type-header">
+        <h2><span class="type-chev">▾</span>Lenses (CV tagline per view)</h2>
+      </div>
+      <div class="type-body">
+        <div class="role-card open" style="cursor:default">
+          <div class="role-body" style="display:block;border-top:none;padding-top:14px" id="lenses-wrap"></div>
+        </div>
+        <div class="row-actions" style="justify-content:flex-start;margin-top:12px">
+          <button class="save-btn" id="lenses-save-btn">Save changes</button>
+          <span class="save-status" id="lenses-save-status">Saved</span>
         </div>
       </div>
     </section>
@@ -500,6 +530,7 @@ async function boot(){
   app.style.display = "block";
   whoEmailEl.textContent = session.user.email;
   await loadProfile();
+  await loadLenses();
   await loadAll();
 }
 
@@ -812,43 +843,50 @@ function linkHrefFor(kind, value){
   input.addEventListener("input", ()=>{ link.href = linkHrefFor(kind, input.value); });
 });
 
-function addHobbyTag(text){
-  text = (text||"").trim();
-  if (!text) return;
-  const wrap = document.getElementById("hobbies-input");
-  const entry = document.getElementById("hobby-entry");
-  const tag = document.createElement("span");
-  tag.className = "tag";
-  tag.dataset.text = text;
-  tag.textContent = text;
-  const rm = document.createElement("button");
-  rm.type = "button";
-  rm.textContent = "\u2715";
-  rm.title = "Remove";
-  rm.onclick = ()=> tag.remove();
-  tag.appendChild(rm);
-  wrap.insertBefore(tag, entry);
-}
-
-function clearHobbyTags(){
-  document.querySelectorAll("#hobbies-input .tag").forEach(t=>t.remove());
-}
-
-const hobbyEntry = document.getElementById("hobby-entry");
-hobbyEntry.addEventListener("keydown", (e)=>{
-  if (e.key === "Enter" || e.key === ","){
-    e.preventDefault();
-    addHobbyTag(hobbyEntry.value);
-    hobbyEntry.value = "";
-  } else if (e.key === "Backspace" && hobbyEntry.value === ""){
-    const tags = document.querySelectorAll("#hobbies-input .tag");
-    if (tags.length) tags[tags.length-1].remove();
+function makeTagList(wrapId, entryId){
+  const wrap = document.getElementById(wrapId);
+  const entry = document.getElementById(entryId);
+  function add(text){
+    text = (text||"").trim();
+    if (!text) return;
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.dataset.text = text;
+    tag.textContent = text;
+    const rm = document.createElement("button");
+    rm.type = "button";
+    rm.textContent = "\u2715";
+    rm.title = "Remove";
+    rm.onclick = ()=> tag.remove();
+    tag.appendChild(rm);
+    wrap.insertBefore(tag, entry);
   }
-});
-hobbyEntry.addEventListener("blur", ()=>{
-  addHobbyTag(hobbyEntry.value);
-  hobbyEntry.value = "";
-});
+  function clear(){
+    wrap.querySelectorAll(".tag").forEach(t=>t.remove());
+  }
+  function getAll(){
+    return Array.from(wrap.querySelectorAll(".tag")).map(t=>t.dataset.text);
+  }
+  entry.addEventListener("keydown", (e)=>{
+    if (e.key === "Enter" || e.key === ","){
+      e.preventDefault();
+      add(entry.value);
+      entry.value = "";
+    } else if (e.key === "Backspace" && entry.value === ""){
+      const tags = wrap.querySelectorAll(".tag");
+      if (tags.length) tags[tags.length-1].remove();
+    }
+  });
+  entry.addEventListener("blur", ()=>{
+    add(entry.value);
+    entry.value = "";
+  });
+  return { add, clear, getAll };
+}
+
+const hobbiesTags = makeTagList("hobbies-input", "hobby-entry");
+const capabilitiesTags = makeTagList("capabilities-input", "capability-entry");
+const toolsTags = makeTagList("tools-input", "tool-entry");
 
 async function loadProfile(){
   const { data, error } = await sb.from("cv_profile").select("*").eq("id",1).single();
@@ -867,8 +905,18 @@ async function loadProfile(){
 
   const { data: hobbies, error: hErr } = await sb.from("cv_hobbies").select("*").order("sort_order");
   if (hErr){ toast("Couldn't load hobbies: " + hErr.message); return; }
-  clearHobbyTags();
-  hobbies.forEach(h=> addHobbyTag(h.hobby_text));
+  hobbiesTags.clear();
+  hobbies.forEach(h=> hobbiesTags.add(h.hobby_text));
+
+  const { data: capabilities, error: cErr } = await sb.from("cv_capabilities").select("*").order("sort_order");
+  if (cErr){ toast("Couldn't load capabilities: " + cErr.message); return; }
+  capabilitiesTags.clear();
+  capabilities.forEach(c=> capabilitiesTags.add(c.item_text));
+
+  const { data: tools, error: tErr } = await sb.from("cv_tools").select("*").order("sort_order");
+  if (tErr){ toast("Couldn't load tools: " + tErr.message); return; }
+  toolsTags.clear();
+  tools.forEach(t=> toolsTags.add(t.item_text));
 }
 
 document.getElementById("profile-save-btn").addEventListener("click", async ()=>{
@@ -884,10 +932,22 @@ document.getElementById("profile-save-btn").addEventListener("click", async ()=>
   const { error } = await sb.from("cv_profile").update(payload).eq("id",1);
   if (error){ toast("Couldn't save profile: " + error.message); return; }
 
-  const hobbyTexts = Array.from(document.querySelectorAll("#hobbies-input .tag")).map(t=>t.dataset.text);
+  const hobbyTexts = hobbiesTags.getAll();
   await sb.from("cv_hobbies").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   if (hobbyTexts.length){
     await sb.from("cv_hobbies").insert(hobbyTexts.map((text, i)=>({ hobby_text: text, sort_order: i+1 })));
+  }
+
+  const capabilityTexts = capabilitiesTags.getAll();
+  await sb.from("cv_capabilities").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (capabilityTexts.length){
+    await sb.from("cv_capabilities").insert(capabilityTexts.map((text, i)=>({ item_text: text, sort_order: i+1 })));
+  }
+
+  const toolTexts = toolsTags.getAll();
+  await sb.from("cv_tools").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (toolTexts.length){
+    await sb.from("cv_tools").insert(toolTexts.map((text, i)=>({ item_text: text, sort_order: i+1 })));
   }
 
   const status = document.getElementById("profile-save-status");
@@ -897,6 +957,51 @@ document.getElementById("profile-save-btn").addEventListener("click", async ()=>
 });
 
 checkSession();
+
+// ---- Lenses (CV taglines) ----
+function renderLensRow(lens){
+  const row = document.createElement("div");
+  row.className = "field-row";
+  row.style.gridTemplateColumns = "1fr 2fr";
+  row.dataset.lensId = lens.id;
+  row.dataset.lensKey = lens.key;
+  row.innerHTML = `
+    <div>
+      <label>Label</label>
+      <input type="text" class="lens-label" value="${escapeHtml(lens.label)}">
+    </div>
+    <div>
+      <label>Tagline</label>
+      <input type="text" class="lens-tagline" value="${escapeHtml(lens.tagline)}">
+    </div>
+  `;
+  return row;
+}
+
+async function loadLenses(){
+  const { data, error } = await sb.from("cv_lenses").select("*").order("sort_order");
+  if (error){ toast("Couldn't load lenses: " + error.message); return; }
+  const wrap = document.getElementById("lenses-wrap");
+  wrap.innerHTML = "";
+  data.forEach(l => wrap.appendChild(renderLensRow(l)));
+}
+
+document.getElementById("lenses-save-btn").addEventListener("click", async ()=>{
+  const rows = document.querySelectorAll("#lenses-wrap [data-lens-id]");
+  for (const row of rows){
+    const payload = {
+      label: row.querySelector(".lens-label").value,
+      tagline: row.querySelector(".lens-tagline").value,
+    };
+    const { error } = await sb.from("cv_lenses").update(payload).eq("id", row.dataset.lensId);
+    if (error){ toast("Couldn't save lens: " + error.message); return; }
+  }
+  const status = document.getElementById("lenses-save-status");
+  status.classList.add("show");
+  setTimeout(()=>status.classList.remove("show"), 1500);
+  await loadLenses();
+});
+
 </script>
 </body>
 </html>
