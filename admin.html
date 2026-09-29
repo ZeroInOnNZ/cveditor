@@ -349,7 +349,7 @@
     </div>
   </header>
   <main>
-    <section class="type-section collapsed" id="profile-section" style="margin-bottom:34px">
+    <section class="type-section" id="profile-section" style="margin-bottom:34px">
       <div class="type-header">
         <h2><span class="type-chev">▾</span>Profile</h2>
       </div>
@@ -558,7 +558,10 @@ function render(){
     const header = document.createElement("div");
     header.className = "type-header";
     header.innerHTML = `<h2><span class="type-chev">\u25BE</span>${escapeHtml(type.name)}</h2>`;
-    header.querySelector("h2").onclick = ()=> section.classList.toggle("collapsed");
+    header.querySelector("h2").onclick = ()=>{
+      section.classList.toggle("collapsed");
+      if (!section.classList.contains("collapsed")) autoGrowAll(section);
+    };
     const addBtn = document.createElement("button");
     addBtn.className = "add-role-btn";
     addBtn.textContent = "+ Add entry";
@@ -787,7 +790,9 @@ async function deleteRole(role){
 }
 
 document.querySelector('#profile-section .type-header h2').onclick = ()=>{
-  document.getElementById('profile-section').classList.toggle('collapsed');
+  const sec = document.getElementById('profile-section');
+  sec.classList.toggle('collapsed');
+  if (!sec.classList.contains('collapsed')) autoGrowAll(sec);
 };
 
 function linkHrefFor(kind, value){
