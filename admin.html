@@ -247,6 +247,25 @@
     margin-top:2px;
   }
   .add-bullet-btn:hover{border-color:var(--navy);color:var(--navy)}
+  .tags-input{
+    display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+    border:1px solid var(--line);border-radius:6px;padding:7px 8px;
+    background:#fff;
+  }
+  .tag{
+    display:inline-flex;align-items:center;gap:6px;
+    background:#eaf1f8;color:var(--navy-dark);
+    border-radius:999px;padding:4px 6px 4px 12px;font-size:13px;
+    white-space:nowrap;
+  }
+  .tag button{
+    background:none;border:none;color:var(--navy-dark);
+    cursor:pointer;font-size:11px;line-height:1;padding:2px;
+  }
+  .tags-input input{
+    border:none;outline:none;flex:1;min-width:140px;
+    font-size:14px;font-family:inherit;padding:4px 2px;background:transparent;
+  }
 
   .row-actions{
     display:flex;
@@ -346,8 +365,9 @@
             <div class="field-row full">
               <div>
                 <div class="bullets-label" style="margin-top:0">Hobbies</div>
-                <div class="bullets-wrap" id="hobbies-wrap"></div>
-                <button class="add-bullet-btn" id="add-hobby-btn" type="button">+ Add hobby</button>
+                <div class="tags-input" id="hobbies-input">
+                  <input type="text" id="hobby-entry" placeholder="Type a hobby, press Enter">
+                </div>
               </div>
             </div>
             <div class="field-row">
@@ -757,23 +777,42 @@ function linkHrefFor(kind, value){
   input.addEventListener("input", ()=>{ link.href = linkHrefFor(kind, input.value); });
 });
 
-function renderHobbyRow(hobby){
-  const row = document.createElement("div");
-  row.className = "bullet-row";
-  row.dataset.hobbyId = hobby.id || "";
-  row.innerHTML = `
-    <textarea rows="1">${escapeHtml(hobby.hobby_text)}</textarea>
-    <button class="icon-btn" title="Remove hobby" type="button">\u2715</button>
-  `;
-  row.querySelector(".icon-btn").onclick = ()=> row.remove();
-  return row;
+function addHobbyTag(text){
+  text = (text||"").trim();
+  if (!text) return;
+  const wrap = document.getElementById("hobbies-input");
+  const entry = document.getElementById("hobby-entry");
+  const tag = document.createElement("span");
+  tag.className = "tag";
+  tag.dataset.text = text;
+  tag.textContent = text;
+  const rm = document.createElement("button");
+  rm.type = "button";
+  rm.textContent = "\u2715";
+  rm.title = "Remove";
+  rm.onclick = ()=> tag.remove();
+  tag.appendChild(rm);
+  wrap.insertBefore(tag, entry);
 }
 
-document.getElementById("add-hobby-btn").addEventListener("click", ()=>{
-  const wrap = document.getElementById("hobbies-wrap");
-  const row = renderHobbyRow({ id: null, hobby_text: "" });
-  wrap.appendChild(row);
-  row.querySelector("textarea").focus();
+function clearHobbyTags(){
+  document.querySelectorAll("#hobbies-input .tag").forEach(t=>t.remove());
+}
+
+const hobbyEntry = document.getElementById("hobby-entry");
+hobbyEntry.addEventListener("keydown", (e)=>{
+  if (e.key === "Enter" || e.key === ","){
+    e.preventDefault();
+    addHobbyTag(hobbyEntry.value);
+    hobbyEntry.value = "";
+  } else if (e.key === "Backspace" && hobbyEntry.value === ""){
+    const tags = document.querySelectorAll("#hobbies-input .tag");
+    if (tags.length) tags[tags.length-1].remove();
+  }
+});
+hobbyEntry.addEventListener("blur", ()=>{
+  addHobbyTag(hobbyEntry.value);
+  hobbyEntry.value = "";
 });
 
 async function loadProfile(){
@@ -790,9 +829,8 @@ async function loadProfile(){
 
   const { data: hobbies, error: hErr } = await sb.from("cv_hobbies").select("*").order("sort_order");
   if (hErr){ toast("Couldn't load hobbies: " + hErr.message); return; }
-  const wrap = document.getElementById("hobbies-wrap");
-  wrap.innerHTML = "";
-  hobbies.forEach(h=> wrap.appendChild(renderHobbyRow(h)));
+  clearHobbyTags();
+  hobbies.forEach(h=> addHobbyTag(h.hobby_text));
 }
 
 document.getElementById("profile-save-btn").addEventListener("click", async ()=>{
@@ -807,24 +845,10 @@ document.getElementById("profile-save-btn").addEventListener("click", async ()=>
   const { error } = await sb.from("cv_profile").update(payload).eq("id",1);
   if (error){ toast("Couldn't save profile: " + error.message); return; }
 
-  const hobbyRows = Array.from(document.querySelectorAll("#hobbies-wrap .bullet-row"));
-  const keepIds = [];
-  for (let i=0; i<hobbyRows.length; i++){
-    const r = hobbyRows[i];
-    const text = r.querySelector("textarea").value.trim();
-    if (!text) continue;
-    if (r.dataset.hobbyId){
-      await sb.from("cv_hobbies").update({ hobby_text: text, sort_order: i+1 }).eq("id", r.dataset.hobbyId);
-      keepIds.push(r.dataset.hobbyId);
-    } else {
-      const { data } = await sb.from("cv_hobbies").insert({ hobby_text: text, sort_order: i+1 }).select().single();
-      if (data) keepIds.push(data.id);
-    }
-  }
-  const { data: existing } = await sb.from("cv_hobbies").select("id");
-  const toDelete = (existing||[]).map(h=>String(h.id)).filter(id=>!keepIds.includes(id));
-  for (const id of toDelete){
-    await sb.from("cv_hobbies").delete().eq("id", id);
+  const hobbyTexts = Array.from(document.querySelectorAll("#hobbies-input .tag")).map(t=>t.dataset.text);
+  await sb.from("cv_hobbies").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (hobbyTexts.length){
+    await sb.from("cv_hobbies").insert(hobbyTexts.map((text, i)=>({ hobby_text: text, sort_order: i+1 })));
   }
 
   const status = document.getElementById("profile-save-status");
