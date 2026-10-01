@@ -234,13 +234,24 @@
     margin-bottom:8px;
   }
   .bullet-row textarea{flex:1;margin-bottom:0}
-  .bullet-order-badge{
-    min-width:18px;
+  .bullet-drag-handle{
+    cursor:grab;
+    color:var(--muted);
+    padding-top:6px;
+    font-size:13px;
+    line-height:1;
+    user-select:none;
+  }
+  .bullet-row.dragging{ opacity:0.4; }
+  .bullet-order-input{
+    width:40px;
     text-align:center;
     font-size:12px;
     color:var(--muted);
-    padding-top:6px;
-    user-select:none;
+    padding:4px 2px;
+    margin-bottom:0;
+    align-self:flex-start;
+    margin-top:2px;
   }
   .bullet-row .icon-btn{ font-size:13px; line-height:1; padding:4px 7px; }
   .bullet-row.bullet-hidden textarea{opacity:0.45}
@@ -799,6 +810,7 @@ function renderRoleCard(role, typeName){
     bulletsWrap.appendChild(renderBulletRow(b, bulletsWrap, notifyBulletsChanged));
   });
   renumberBulletRows(bulletsWrap);
+  enableBulletDragDrop(bulletsWrap);
   body.appendChild(bulletsWrap);
 
   const addBulletBtn = document.createElement("button");
@@ -831,8 +843,8 @@ function renderRoleCard(role, typeName){
 
 function renumberBulletRows(wrap){
   Array.from(wrap.children).forEach(function(row, i){
-    const badge = row.querySelector(".bullet-order-badge");
-    if (badge) badge.textContent = String(i+1);
+    const input = row.querySelector(".bullet-order-input");
+    if (input) input.value = String(i+1);
   });
 }
 
@@ -842,10 +854,9 @@ function renderBulletRow(bullet, wrap, onChange){
   row.dataset.bulletId = bullet.id || "";
   row.dataset.hidden = bullet.hidden ? "true" : "false";
   row.innerHTML = `
+    <span class="bullet-drag-handle" title="Drag to reorder">\u22EE\u22EE</span>
     <textarea rows="2">${escapeHtml(bullet.bullet_text)}</textarea>
-    <span class="bullet-order-badge" title="Position"></span>
-    <button type="button" class="icon-btn bullet-up-btn" title="Move up">\u2191</button>
-    <button type="button" class="icon-btn bullet-down-btn" title="Move down">\u2193</button>
+    <input type="number" class="bullet-order-input" min="1" title="Position (type a number to move it there)">
     <button type="button" class="icon-btn bullet-show-btn" title="Toggle show/hide on live CV">${bullet.hidden ? "\u{1F648}" : "\u{1F441}\uFE0F"}</button>
     <button type="button" class="icon-btn bullet-delete-btn" title="Delete bullet">\u{1F5D1}\uFE0F</button>
   `;
@@ -858,17 +869,59 @@ function renderBulletRow(bullet, wrap, onChange){
     row.querySelector(".bullet-show-btn").textContent = nowHidden ? "\u{1F648}" : "\u{1F441}\uFE0F";
     if (onChange) onChange();
   };
-  row.querySelector(".bullet-up-btn").onclick = ()=>{
-    const prev = row.previousElementSibling;
-    if (prev){ wrap.insertBefore(row, prev); renumberBulletRows(wrap); if (onChange) onChange(); }
-  };
-  row.querySelector(".bullet-down-btn").onclick = ()=>{
-    const next = row.nextElementSibling;
-    if (next){ wrap.insertBefore(next, row); renumberBulletRows(wrap); if (onChange) onChange(); }
-  };
   row.querySelector(".bullet-delete-btn").onclick = ()=>{ row.remove(); renumberBulletRows(wrap); if (onChange) onChange(); };
 
+  // Editable position number: typing a new number splices the row to that index.
+  row.querySelector(".bullet-order-input").addEventListener("change", (e)=>{
+    const rows = Array.from(wrap.children);
+    const total = rows.length;
+    let target = parseInt(e.target.value, 10);
+    if (!target || target < 1) target = 1;
+    if (target > total) target = total;
+    const currentIndex = rows.indexOf(row);
+    if (currentIndex === -1) return;
+    rows.splice(currentIndex, 1);
+    rows.splice(target - 1, 0, row);
+    rows.forEach(r2 => wrap.appendChild(r2)); // re-append in desired order
+    renumberBulletRows(wrap);
+    if (onChange) onChange();
+  });
+
+  // Native drag-and-drop reordering, started only from the handle so the
+  // textarea's own text-selection drag still works normally.
+  const handle = row.querySelector(".bullet-drag-handle");
+  handle.addEventListener("mousedown", ()=>{ row.draggable = true; });
+  row.addEventListener("dragstart", ()=>{ row.classList.add("dragging"); });
+  row.addEventListener("dragend", ()=>{
+    row.classList.remove("dragging");
+    row.draggable = false;
+    renumberBulletRows(wrap);
+    if (onChange) onChange();
+  });
+  window.addEventListener("mouseup", ()=>{ row.draggable = false; });
+
   return row;
+}
+
+function bulletDragAfterElement(wrap, y){
+  const rows = Array.from(wrap.querySelectorAll(".bullet-row:not(.dragging)"));
+  return rows.reduce((closest, el)=>{
+    const box = el.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset, element: el };
+    return closest;
+  }, { offset: -Infinity, element: null }).element;
+}
+
+function enableBulletDragDrop(wrap){
+  wrap.addEventListener("dragover", (e)=>{
+    e.preventDefault();
+    const dragging = wrap.querySelector(".bullet-row.dragging");
+    if (!dragging) return;
+    const after = bulletDragAfterElement(wrap, e.clientY);
+    if (after == null) wrap.appendChild(dragging);
+    else wrap.insertBefore(dragging, after);
+  });
 }
 
 function addNewRole(typeId){
