@@ -234,18 +234,15 @@
     margin-bottom:8px;
   }
   .bullet-row textarea{flex:1;margin-bottom:0}
-  .bullet-show-toggle{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:2px;
-    font-size:11px;
+  .bullet-order-badge{
+    min-width:18px;
+    text-align:center;
+    font-size:12px;
     color:var(--muted);
-    white-space:nowrap;
-    padding-top:4px;
-    cursor:pointer;
+    padding-top:6px;
     user-select:none;
   }
+  .bullet-row .icon-btn{ font-size:13px; line-height:1; padding:4px 7px; }
   .bullet-row.bullet-hidden textarea{opacity:0.45}
   .bullet-row.bullet-hidden{background:#fafafa; border-radius:6px}
   .icon-btn{
@@ -799,16 +796,18 @@ function renderRoleCard(role, typeName){
   bulletsWrap.className = "bullets-wrap";
   const notifyBulletsChanged = ()=> body.dispatchEvent(new Event("input", {bubbles:true}));
   bulletsForRole(role.id).forEach(b=>{
-    bulletsWrap.appendChild(renderBulletRow(b, notifyBulletsChanged));
+    bulletsWrap.appendChild(renderBulletRow(b, bulletsWrap, notifyBulletsChanged));
   });
+  renumberBulletRows(bulletsWrap);
   body.appendChild(bulletsWrap);
 
   const addBulletBtn = document.createElement("button");
   addBulletBtn.className = "add-bullet-btn";
   addBulletBtn.textContent = "+ Add bullet";
   addBulletBtn.onclick = ()=>{
-    const row = renderBulletRow({ id: null, bullet_text: "", sort_order: bulletsWrap.children.length + 1, role_id: role.id }, notifyBulletsChanged);
+    const row = renderBulletRow({ id: null, bullet_text: "", sort_order: bulletsWrap.children.length + 1, role_id: role.id }, bulletsWrap, notifyBulletsChanged);
     bulletsWrap.appendChild(row);
+    renumberBulletRows(bulletsWrap);
     row.querySelector("textarea").focus();
     notifyBulletsChanged();
   };
@@ -830,24 +829,45 @@ function renderRoleCard(role, typeName){
   return card;
 }
 
-function renderBulletRow(bullet, onChange){
+function renumberBulletRows(wrap){
+  Array.from(wrap.children).forEach(function(row, i){
+    const badge = row.querySelector(".bullet-order-badge");
+    if (badge) badge.textContent = String(i+1);
+  });
+}
+
+function renderBulletRow(bullet, wrap, onChange){
   const row = document.createElement("div");
   row.className = "bullet-row";
   row.dataset.bulletId = bullet.id || "";
+  row.dataset.hidden = bullet.hidden ? "true" : "false";
   row.innerHTML = `
-    <label class="bullet-show-toggle" title="Untick to hide this bullet from exports/live CV">
-      <input type="checkbox" class="bullet-show-checkbox" ${bullet.hidden ? "" : "checked"}>
-      <span>Show</span>
-    </label>
     <textarea rows="2">${escapeHtml(bullet.bullet_text)}</textarea>
-    <button class="icon-btn" title="Remove bullet">\u2715</button>
+    <span class="bullet-order-badge" title="Position"></span>
+    <button type="button" class="icon-btn bullet-up-btn" title="Move up">\u2191</button>
+    <button type="button" class="icon-btn bullet-down-btn" title="Move down">\u2193</button>
+    <button type="button" class="icon-btn bullet-show-btn" title="Toggle show/hide on live CV">${bullet.hidden ? "\u{1F648}" : "\u{1F441}\uFE0F"}</button>
+    <button type="button" class="icon-btn bullet-delete-btn" title="Delete bullet">\u{1F5D1}\uFE0F</button>
   `;
-  row.querySelector(".icon-btn").onclick = ()=>{ row.remove(); if (onChange) onChange(); };
-  row.querySelector(".bullet-show-checkbox").addEventListener("change", ()=>{
-    row.classList.toggle("bullet-hidden", !row.querySelector(".bullet-show-checkbox").checked);
-    if (onChange) onChange();
-  });
   row.classList.toggle("bullet-hidden", !!bullet.hidden);
+
+  row.querySelector(".bullet-show-btn").onclick = ()=>{
+    const nowHidden = row.dataset.hidden !== "true";
+    row.dataset.hidden = nowHidden ? "true" : "false";
+    row.classList.toggle("bullet-hidden", nowHidden);
+    row.querySelector(".bullet-show-btn").textContent = nowHidden ? "\u{1F648}" : "\u{1F441}\uFE0F";
+    if (onChange) onChange();
+  };
+  row.querySelector(".bullet-up-btn").onclick = ()=>{
+    const prev = row.previousElementSibling;
+    if (prev){ wrap.insertBefore(row, prev); renumberBulletRows(wrap); if (onChange) onChange(); }
+  };
+  row.querySelector(".bullet-down-btn").onclick = ()=>{
+    const next = row.nextElementSibling;
+    if (next){ wrap.insertBefore(next, row); renumberBulletRows(wrap); if (onChange) onChange(); }
+  };
+  row.querySelector(".bullet-delete-btn").onclick = ()=>{ row.remove(); renumberBulletRows(wrap); if (onChange) onChange(); };
+
   return row;
 }
 
@@ -902,7 +922,7 @@ async function saveRole(card, role){
     const r = bulletRows[i];
     const text = r.querySelector("textarea").value.trim();
     if (!text) continue;
-    const hidden = !r.querySelector(".bullet-show-checkbox").checked;
+    const hidden = r.dataset.hidden === "true";
     if (r.dataset.bulletId){
       await sb.from("cv_bullets").update({ bullet_text: text, sort_order: i+1, hidden }).eq("id", r.dataset.bulletId);
       keepIds.push(r.dataset.bulletId);
@@ -928,7 +948,7 @@ async function saveRole(card, role){
     if (!text) return;
     const id = r.dataset.bulletId || keepIds[i];
     r.dataset.bulletId = id;
-    const hidden = !r.querySelector(".bullet-show-checkbox").checked;
+    const hidden = r.dataset.hidden === "true";
     BULLETS.push({ id, role_id: roleId, bullet_text: text, sort_order: i+1, hidden });
   });
 
