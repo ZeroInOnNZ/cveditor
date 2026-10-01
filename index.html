@@ -86,17 +86,16 @@
     box-shadow: 0 2px 24px rgba(0,0,0,0.08);
     padding: 0;
     overflow: hidden;
+    background: linear-gradient(to right, var(--navy) 0, var(--navy) 315px, #fff 315px, #fff 100%);
   }
 
   .design-layout { display: flex; align-items: stretch; }
   .design-sidebar {
     width: 315px;
     flex-shrink: 0;
-    background: var(--navy);
+    background: transparent;
     color: #fff;
     padding: 44px 28px;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
   }
   .design-sidebar .d-name { font-size: 24px; font-weight: 300; margin-bottom: 4px; }
   .design-sidebar .d-tagline { font-size: 11px; font-weight: 300; color: #cfe0f2; line-height: 1.5; margin-bottom: 28px; }
@@ -111,7 +110,7 @@
   .design-sidebar .d-list a:hover { text-decoration: underline; }
   .design-sidebar .d-list-2col { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
 
-  .design-main { flex-grow: 1; padding: 44px 40px; min-width: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .design-main { flex-grow: 1; padding: 44px 40px; min-width: 0; }
   .design-main .section-heading:first-child { margin-top: 0; }
 
   .section-heading {
@@ -159,7 +158,6 @@
     body { background: white; }
     .cv-page { margin: 0; box-shadow: none; padding: 0; max-width: 100%; }
     .cv-page, .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .design-sidebar { width: 30%; }
     .role-title, .role-meta, .role-summary { break-after: avoid; page-break-after: avoid; }
     ul.cv-list li { break-inside: avoid; page-break-inside: avoid; }
     .section-heading { break-after: avoid; page-break-after: avoid; }
@@ -220,7 +218,7 @@ let currentLensKey = null;
 let PROFILE = null;
 let WORK_ROLES = [];
 let BULLETS_BY_ROLE = {};
-let roleModes = {}; // session-only, keyed by role id: full | partial | none
+let zioMode = "full"; // session-only: full | partial | none
 
 function renderLensButtons(){
   const wrap = document.getElementById("lens-buttons");
@@ -234,17 +232,17 @@ function renderLensButtons(){
   });
 }
 
-function setRoleMode(roleId, mode){
-  roleModes[roleId] = mode;
+function setZioMode(mode){
+  zioMode = mode;
   renderRoleBlocks();
 }
 
-function roleToggleHtml(roleId){
-  const current = roleModes[roleId] || "full";
+function zioToggleHtml(){
   const opts = [["full","Full"],["partial","Partial"],["none","None"]];
   return '<div class="zio-toggle">' +
+    '<span class="zio-toggle-label">Zero In On:</span>' +
     opts.map(function(o){
-      return '<button type="button" class="zio-btn' + (current===o[0]?" active":"") + '" onclick="setRoleMode(\'' + roleId + '\',\'' + o[0] + '\')">' + o[1] + '</button>';
+      return '<button type="button" class="zio-btn' + (zioMode===o[0]?" active":"") + '" onclick="setZioMode(\'' + o[0] + '\')">' + o[1] + '</button>';
     }).join("") +
     '</div>';
 }
@@ -254,16 +252,18 @@ function renderRoleBlock(r){
   const end = r.end_date ? monthYear(r.end_date) : "Present";
   const dateRange = start ? (start + " \u2013 " + end) : "";
   const metaParts = [r.org, dateRange, r.location].filter(Boolean);
-  let roleBullets = (BULLETS_BY_ROLE[r.id]||[]).sort(function(a,b){return a.sort_order-b.sort_order;});
-  const mode = roleModes[r.id] || "full";
+  let roleBullets = (BULLETS_BY_ROLE[r.id]||[]).filter(function(b){return !b.hidden;}).sort(function(a,b){return a.sort_order-b.sort_order;});
+  const isZio = r.org === "Zero In On Limited";
 
-  if (mode === "none") return "";
-  if (mode === "partial") roleBullets = roleBullets.slice(0,3);
+  if (isZio){
+    if (zioMode === "none") return "";
+    if (zioMode === "partial") roleBullets = roleBullets.slice(0,3);
+  }
 
   return '<div class="role-block">' +
     '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
       '<p class="role-title" style="margin-bottom:0">' + escapeHtml(r.title) + '</p>' +
-      roleToggleHtml(r.id) +
+      (isZio ? zioToggleHtml() : '') +
     '</div>' +
     '<p class="role-meta">' + metaParts.map(escapeHtml).join(" | ") + '</p>' +
     (r.summary ? '<p class="role-summary">' + escapeHtml(r.summary) + '</p>' : "") +

@@ -230,23 +230,24 @@
   .bullet-row{
     display:flex;
     gap:8px;
-    align-items:center;
+    align-items:flex-start;
     margin-bottom:8px;
   }
-  .bullet-row.dragging{ opacity:0.4; }
-  .bullet-row.drag-over{ border-top:2px solid var(--navy); }
-  .bullet-row input[type=text]{flex:1;margin-bottom:0}
-  .drag-handle{
-    flex-shrink:0;
-    width:20px;
-    text-align:center;
+  .bullet-row textarea{flex:1;margin-bottom:0}
+  .bullet-show-toggle{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    font-size:11px;
     color:var(--muted);
-    cursor:grab;
-    font-size:14px;
+    white-space:nowrap;
+    padding-top:4px;
+    cursor:pointer;
     user-select:none;
-    line-height:32px;
   }
-  .drag-handle:active{ cursor:grabbing; }
+  .bullet-row.bullet-hidden textarea{opacity:0.45}
+  .bullet-row.bullet-hidden{background:#fafafa; border-radius:6px}
   .icon-btn{
     background:none;
     border:1px solid var(--line);
@@ -832,45 +833,21 @@ function renderRoleCard(role, typeName){
 function renderBulletRow(bullet, onChange){
   const row = document.createElement("div");
   row.className = "bullet-row";
-  row.draggable = true;
   row.dataset.bulletId = bullet.id || "";
   row.innerHTML = `
-    <span class="drag-handle" title="Drag to reorder">\u2630</span>
-    <input type="text" value="${escapeHtml(bullet.bullet_text)}">
+    <label class="bullet-show-toggle" title="Untick to hide this bullet from exports/live CV">
+      <input type="checkbox" class="bullet-show-checkbox" ${bullet.hidden ? "" : "checked"}>
+      <span>Show</span>
+    </label>
+    <textarea rows="2">${escapeHtml(bullet.bullet_text)}</textarea>
     <button class="icon-btn" title="Remove bullet">\u2715</button>
   `;
   row.querySelector(".icon-btn").onclick = ()=>{ row.remove(); if (onChange) onChange(); };
-
-  row.addEventListener("dragstart", (e)=>{
-    row.classList.add("dragging");
-    e.dataTransfer.effectAllowed = "move";
-  });
-  row.addEventListener("dragend", ()=>{
-    row.classList.remove("dragging");
-    row.parentElement.querySelectorAll(".bullet-row").forEach(r=>r.classList.remove("drag-over"));
-  });
-  row.addEventListener("dragover", (e)=>{
-    e.preventDefault();
-    if (row.classList.contains("dragging")) return;
-    row.classList.add("drag-over");
-  });
-  row.addEventListener("dragleave", ()=>{
-    row.classList.remove("drag-over");
-  });
-  row.addEventListener("drop", (e)=>{
-    e.preventDefault();
-    row.classList.remove("drag-over");
-    const wrap = row.parentElement;
-    const dragging = wrap.querySelector(".bullet-row.dragging");
-    if (!dragging || dragging === row) return;
-    const rows = Array.from(wrap.querySelectorAll(".bullet-row"));
-    const draggingIndex = rows.indexOf(dragging);
-    const targetIndex = rows.indexOf(row);
-    if (draggingIndex < targetIndex) row.after(dragging);
-    else row.before(dragging);
+  row.querySelector(".bullet-show-checkbox").addEventListener("change", ()=>{
+    row.classList.toggle("bullet-hidden", !row.querySelector(".bullet-show-checkbox").checked);
     if (onChange) onChange();
   });
-
+  row.classList.toggle("bullet-hidden", !!bullet.hidden);
   return row;
 }
 
@@ -923,13 +900,14 @@ async function saveRole(card, role){
   const keepIds = [];
   for (let i=0; i<bulletRows.length; i++){
     const r = bulletRows[i];
-    const text = r.querySelector("input[type=text]").value.trim();
+    const text = r.querySelector("textarea").value.trim();
     if (!text) continue;
+    const hidden = !r.querySelector(".bullet-show-checkbox").checked;
     if (r.dataset.bulletId){
-      await sb.from("cv_bullets").update({ bullet_text: text, sort_order: i+1 }).eq("id", r.dataset.bulletId);
+      await sb.from("cv_bullets").update({ bullet_text: text, sort_order: i+1, hidden }).eq("id", r.dataset.bulletId);
       keepIds.push(r.dataset.bulletId);
     } else {
-      const { data } = await sb.from("cv_bullets").insert({ role_id: roleId, bullet_text: text, sort_order: i+1 }).select().single();
+      const { data } = await sb.from("cv_bullets").insert({ role_id: roleId, bullet_text: text, sort_order: i+1, hidden }).select().single();
       if (data) keepIds.push(data.id);
     }
   }
@@ -946,11 +924,12 @@ async function saveRole(card, role){
   card.dataset.roleId = roleId;
   BULLETS = BULLETS.filter(b=>b.role_id !== roleId);
   bulletRows.forEach((r,i)=>{
-    const text = r.querySelector("input[type=text]").value.trim();
+    const text = r.querySelector("textarea").value.trim();
     if (!text) return;
     const id = r.dataset.bulletId || keepIds[i];
     r.dataset.bulletId = id;
-    BULLETS.push({ id, role_id: roleId, bullet_text: text, sort_order: i+1 });
+    const hidden = !r.querySelector(".bullet-show-checkbox").checked;
+    BULLETS.push({ id, role_id: roleId, bullet_text: text, sort_order: i+1, hidden });
   });
 
   const typeName = (TYPES.find(t=>t.id===role.type_id)||{}).name || "";
