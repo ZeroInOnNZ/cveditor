@@ -241,7 +241,7 @@ function setRoleMode(roleId, mode){
 
 function roleToggleHtml(roleId){
   const mode = roleModeByRoleId[roleId] || "full";
-  const opts = [["full","Full"],["partial","Partial"],["none","None"]];
+  const opts = [["full","Full"],["partial","Partial"],["summary","Summary"],["none","None"]];
   return '<div class="zio-toggle">' +
     opts.map(function(o){
       return '<button type="button" class="zio-btn' + (mode===o[0]?" active":"") + '" onclick="setRoleMode(\'' + roleId + '\',\'' + o[0] + '\')">' + o[1] + '</button>';
@@ -259,6 +259,7 @@ function renderRoleBlock(r){
 
   if (mode === "none") return "";
   if (mode === "partial") roleBullets = roleBullets.slice(0,3);
+  if (mode === "summary") roleBullets = [];
 
   return '<div class="role-block">' +
     '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
