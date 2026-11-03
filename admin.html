@@ -300,28 +300,45 @@
     font-size:14px;font-family:inherit;padding:4px 2px;background:transparent;
   }
   .cat-group{
+    position:relative;
     background:var(--card);
     border:1px solid var(--line);
     border-radius:8px;
-    padding:14px 16px;
+    padding:14px 40px 14px 16px;
     margin-bottom:12px;
   }
   .cat-group:last-child{ margin-bottom:0; }
-  .cat-head{
-    display:flex;align-items:center;gap:8px;margin-bottom:12px;
+  .cat-delete-btn{
+    position:absolute; top:12px; right:12px;
+    font-size:13px; line-height:1; padding:4px 7px;
   }
-  .cat-head .label{ font-size:14.5px;font-weight:600;color:var(--navy);flex:1; }
-  .cat-head .icon-btn{ font-size:13px; line-height:1; padding:4px 7px; }
-  .pill-sub-label{
-    font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;
-    letter-spacing:.3px;margin:12px 0 6px;
+  .cat-row{
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px;
   }
-  .pill-sub-label:first-of-type{ margin-top:0; }
-  .eco-sub{ margin:8px 0 2px; }
+  .cat-title{
+    font-size:14.5px;font-weight:600;color:var(--navy);
+    white-space:nowrap;margin-right:4px;
+  }
+  .eco-sub{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1px solid var(--line);border-radius:999px;
+    padding:4px 10px 4px 4px;
+  }
+  .eco-label-group{
+    display:inline-flex;align-items:center;gap:2px;
+  }
   .eco-label{
-    font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;
-    letter-spacing:.3px;margin-bottom:6px;
+    font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.3px;white-space:nowrap;
+    border-radius:999px;padding:3px 8px;
   }
+  .eco-delete-btn{
+    background:none;border:none;color:var(--muted);cursor:pointer;
+    font-size:10px;line-height:1;padding:0 2px;
+  }
+  .eco-delete-btn:hover{ color:var(--danger); }
+  .pills-inline{ display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center; }
+  .eco-sub .pill-add{ min-width:70px; }
   .pills{
     display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:30px;
   }
@@ -344,8 +361,8 @@
     display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;
   }
   .add-tool-row input[type=text]{
-    border:1px solid var(--line);border-radius:6px;
-    padding:6px 8px;font-size:13px;margin-bottom:0;
+    border:1px solid var(--line);border-radius:999px;
+    padding:8px 14px;font-size:13px;margin-bottom:0;flex:1;min-width:160px;
   }
 
   .row-actions{
@@ -726,6 +743,12 @@ function dateSortKey(role, typeName){
   return role.start_date || "";
 }
 
+// Sections collapse by default; this tracks which ones the user has opened
+// so a reload triggered by any action elsewhere on the page (add, delete,
+// drag, etc.) doesn't silently re-collapse a section the user is actively
+// looking at.
+const openSections = new Set();
+
 // ---- Render ----
 function render(){
   sectionsEl.innerHTML = "";
@@ -733,14 +756,15 @@ function render(){
     const rolesOfType = ROLES.filter(r=>r.type_id===type.id).sort((a,b)=>dateSortKey(b, type.name).localeCompare(dateSortKey(a, type.name)));
 
     const section = document.createElement("section");
-    section.className = "type-section collapsed";
+    section.className = "type-section" + (openSections.has(type.id) ? "" : " collapsed");
 
     const header = document.createElement("div");
     header.className = "type-header";
     header.innerHTML = `<h2><span class="type-chev">\u25BE</span>${escapeHtml(type.name)}</h2>`;
     header.querySelector("h2").onclick = ()=>{
       section.classList.toggle("collapsed");
-      if (!section.classList.contains("collapsed")) autoGrowAll(section);
+      if (section.classList.contains("collapsed")) openSections.delete(type.id);
+      else { openSections.add(type.id); autoGrowAll(section); }
     };
     const addBtn = document.createElement("button");
     addBtn.className = "add-role-btn";
@@ -784,7 +808,7 @@ function categoriesForDisplay(){
 
 function renderTechPracticeSection(){
   const section = document.createElement("section");
-  section.className = "type-section collapsed";
+  section.className = "type-section" + (openSections.has("tech-practice") ? "" : " collapsed");
   section.id = "tech-practice-section";
 
   const header = document.createElement("div");
@@ -792,6 +816,8 @@ function renderTechPracticeSection(){
   header.innerHTML = `<h2><span class="type-chev">▾</span>Technology in Practice</h2>`;
   header.querySelector("h2").onclick = ()=>{
     section.classList.toggle("collapsed");
+    if (section.classList.contains("collapsed")) openSections.delete("tech-practice");
+    else openSections.add("tech-practice");
   };
   const addBtn = document.createElement("button");
   addBtn.className = "add-role-btn";
@@ -837,40 +863,52 @@ function enablePillDrop(container, kind, categoryId, ecosystem){
   });
 }
 
-function buildCategoryHead(cat){
-  const head = document.createElement("div");
-  head.className = "cat-head";
-  head.innerHTML = `<span class="label">${escapeHtml(cat.label)}</span>`;
-  if (cat.id){
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.className = "icon-btn";
-    delBtn.title = "Delete category";
-    delBtn.textContent = "\u{1F5D1}️";
-    delBtn.onclick = ()=> deleteCategory(cat);
-    head.appendChild(delBtn);
-  }
-  return head;
+const ECOSYSTEM_PALETTE = [
+  { bg: "#E6F1FB", fg: "#0C447C" },
+  { bg: "#EAF3DE", fg: "#27500A" },
+  { bg: "#FAEEDA", fg: "#633806" },
+  { bg: "#FBEAF0", fg: "#72243E" },
+  { bg: "#EEEDFE", fg: "#3C3489" },
+  { bg: "#FAECE7", fg: "#712B13" },
+  { bg: "#E1F5EE", fg: "#085041" },
+];
+function colorForEcosystem(name){
+  let hash = 0;
+  for (let i=0;i<name.length;i++){ hash = (hash*31 + name.charCodeAt(i)) >>> 0; }
+  return ECOSYSTEM_PALETTE[hash % ECOSYSTEM_PALETTE.length];
 }
 
 function buildCategoryCard(cat){
   const card = document.createElement("div");
   card.className = "cat-group";
-  card.appendChild(buildCategoryHead(cat));
 
-  const capLabel = document.createElement("div");
-  capLabel.className = "pill-sub-label";
-  capLabel.textContent = "Capabilities";
-  card.appendChild(capLabel);
+  if (cat.id){
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "icon-btn cat-delete-btn";
+    delBtn.title = "Delete category";
+    delBtn.textContent = "\u{1F5D1}️";
+    delBtn.onclick = ()=> deleteCategory(cat);
+    card.appendChild(delBtn);
+  }
 
-  const capPillsWrap = document.createElement("div");
-  capPillsWrap.className = "pills";
+  const isTechTools = cat.key === "technology_tools";
+  const isUncategorised = cat.id === null;
+
+  const row = document.createElement("div");
+  row.className = "cat-row";
+
+  const title = document.createElement("span");
+  title.className = "cat-title";
+  title.textContent = cat.label;
+  row.appendChild(title);
+
   CAPABILITIES.filter(c => (c.category_id||null) === (cat.id||null)).forEach(c=>{
-    capPillsWrap.appendChild(buildPill(c, "capability"));
+    row.appendChild(buildPill(c, "capability"));
   });
   const capAddInput = document.createElement("input");
   capAddInput.className = "pill-add";
-  capAddInput.placeholder = "Add, press Enter";
+  capAddInput.placeholder = "Add new";
   capAddInput.addEventListener("keydown", (e)=>{
     if (e.key === "Enter"){
       e.preventDefault();
@@ -880,54 +918,29 @@ function buildCategoryCard(cat){
       createCapability(text, cat.id || null);
     }
   });
-  capPillsWrap.appendChild(capAddInput);
-  enablePillDrop(capPillsWrap, "capability", cat.id || null);
-  card.appendChild(capPillsWrap);
+  row.appendChild(capAddInput);
+  enablePillDrop(row, "capability", cat.id || null);
 
-  // Tools only ever live under "Technology & Tools" (every real tool is
-  // categorised there) — showing an empty Tools row on every other category
-  // card was clutter. Uncategorised still gets one, as a safety net for any
-  // tool that's been dragged or de-categorised out of Technology & Tools.
-  if (cat.key === "technology_tools" || cat.id === null){
-    const toolLabel = document.createElement("div");
-    toolLabel.className = "pill-sub-label";
-    toolLabel.textContent = "Tools";
-    card.appendChild(toolLabel);
-
+  // Tools only ever live under "Technology & Tools" — Uncategorised still
+  // gets a (label-less) tools row as a safety net for anything dragged or
+  // de-categorised out of it.
+  if (isTechTools || isUncategorised){
     const toolsInCat = TOOLS.filter(t => (t.category_id||null) === (cat.id||null));
 
-    if (cat.key === "technology_tools"){
+    if (isTechTools){
       const ecosystems = Array.from(new Set(toolsInCat.map(t=> t.ecosystem || "").filter(Boolean))).sort();
       ecosystems.forEach(eco=>{
-        card.appendChild(buildEcosystemSubgroup(cat, eco, toolsInCat.filter(t=>t.ecosystem===eco)));
+        row.appendChild(buildEcosystemSubgroup(cat, eco, toolsInCat.filter(t=>t.ecosystem===eco)));
       });
-      card.appendChild(buildEcosystemSubgroup(cat, "", toolsInCat.filter(t=>!t.ecosystem)));
-
-      const addRow = document.createElement("div");
-      addRow.className = "add-tool-row";
-      const nameInput = document.createElement("input");
-      nameInput.type = "text"; nameInput.placeholder = "New tool name";
-      const ecoInput = document.createElement("input");
-      ecoInput.type = "text"; ecoInput.placeholder = "Ecosystem (optional, can be new)";
-      const addBtn = document.createElement("button");
-      addBtn.type = "button"; addBtn.className = "add-bullet-btn"; addBtn.textContent = "Add";
-      const doAdd = ()=>{
-        const text = nameInput.value.trim();
-        if (!text) return;
-        createTool(text, cat.id, ecoInput.value.trim() || null);
-        nameInput.value = ""; ecoInput.value = "";
-      };
-      nameInput.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); doAdd(); } });
-      addBtn.onclick = doAdd;
-      addRow.appendChild(nameInput); addRow.appendChild(ecoInput); addRow.appendChild(addBtn);
-      card.appendChild(addRow);
+      row.appendChild(buildEcosystemSubgroup(cat, "", toolsInCat.filter(t=>!t.ecosystem)));
     } else {
-      const toolPillsWrap = document.createElement("div");
-      toolPillsWrap.className = "pills";
+      const toolPillsWrap = document.createElement("span");
+      toolPillsWrap.className = "pills-inline";
       toolsInCat.forEach(t=> toolPillsWrap.appendChild(buildPill(t, "tool")));
+      row.appendChild(toolPillsWrap);
       const toolAddInput = document.createElement("input");
       toolAddInput.className = "pill-add";
-      toolAddInput.placeholder = "Add, press Enter";
+      toolAddInput.placeholder = "Add new";
       toolAddInput.addEventListener("keydown", (e)=>{
         if (e.key === "Enter"){
           e.preventDefault();
@@ -937,29 +950,72 @@ function buildCategoryCard(cat){
           createTool(text, cat.id || null, null);
         }
       });
-      toolPillsWrap.appendChild(toolAddInput);
+      row.appendChild(toolAddInput);
       enablePillDrop(toolPillsWrap, "tool", cat.id || null, null);
-      card.appendChild(toolPillsWrap);
     }
+  }
+
+  card.appendChild(row);
+
+  if (isTechTools){
+    const addRow = document.createElement("div");
+    addRow.className = "add-tool-row";
+    const ecoInput = document.createElement("input");
+    ecoInput.type = "text"; ecoInput.placeholder = "New ecosystem name";
+    const nameInput = document.createElement("input");
+    nameInput.type = "text"; nameInput.placeholder = "New tool name";
+    const addBtn = document.createElement("button");
+    addBtn.type = "button"; addBtn.className = "add-bullet-btn"; addBtn.textContent = "Add";
+    const doAdd = ()=>{
+      const text = nameInput.value.trim();
+      if (!text) return;
+      createTool(text, cat.id, ecoInput.value.trim() || null);
+      nameInput.value = ""; ecoInput.value = "";
+    };
+    nameInput.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); doAdd(); } });
+    ecoInput.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); doAdd(); } });
+    addBtn.onclick = doAdd;
+    addRow.appendChild(ecoInput); addRow.appendChild(nameInput); addRow.appendChild(addBtn);
+    card.appendChild(addRow);
   }
 
   return card;
 }
 
 function buildEcosystemSubgroup(cat, ecosystem, tools){
-  const sub = document.createElement("div");
+  const sub = document.createElement("span");
   sub.className = "eco-sub";
-  const label = document.createElement("div");
+
+  const labelGroup = document.createElement("span");
+  labelGroup.className = "eco-label-group";
+  const label = document.createElement("span");
   label.className = "eco-label";
   label.textContent = ecosystem || "Other";
-  sub.appendChild(label);
+  if (ecosystem){
+    const c = colorForEcosystem(ecosystem);
+    label.style.background = c.bg;
+    label.style.color = c.fg;
+  }
+  labelGroup.appendChild(label);
 
-  const pillsWrap = document.createElement("div");
-  pillsWrap.className = "pills";
+  if (ecosystem){
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "icon-btn eco-delete-btn";
+    delBtn.title = "Delete ecosystem grouping";
+    delBtn.textContent = "✕";
+    delBtn.onclick = ()=> deleteEcosystem(cat, ecosystem);
+    labelGroup.appendChild(delBtn);
+  }
+  sub.appendChild(labelGroup);
+
+  const pillsWrap = document.createElement("span");
+  pillsWrap.className = "pills-inline";
   tools.forEach(t=> pillsWrap.appendChild(buildPill(t, "tool")));
+
   const addInput = document.createElement("input");
   addInput.className = "pill-add";
-  addInput.placeholder = ecosystem ? `Add ${ecosystem} tool, press Enter` : "Add, press Enter";
+  addInput.placeholder = "Add new";
   addInput.addEventListener("keydown", (e)=>{
     if (e.key === "Enter"){
       e.preventDefault();
@@ -980,6 +1036,7 @@ function buildEcosystemSubgroup(cat, ecosystem, tools){
 async function createCategory(){
   const label = prompt("New category name:");
   if (!label || !label.trim()) return;
+  openSections.add("tech-practice");
   const sortOrder = CATEGORIES.reduce((max,c)=>Math.max(max,c.sort_order||0),0) + 1;
   const key = (label.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"")) || ("category_"+Date.now());
   const { error } = await sb.from("cv_categories").insert({ key, label: label.trim(), sort_order: sortOrder });
@@ -992,6 +1049,7 @@ async function deleteCategory(cat){
   const toolCount = TOOLS.filter(t=>t.category_id===cat.id).length;
   const itemsNote = (capCount+toolCount) > 0 ? ` ${capCount+toolCount} item(s) in it will become Uncategorised, not deleted.` : "";
   if (!confirm(`Delete category "${cat.label}"? This can't be undone.${itemsNote}`)) return;
+  openSections.add("tech-practice");
   await sb.from("cv_capabilities").update({ category_id: null }).eq("category_id", cat.id);
   await sb.from("cv_tools").update({ category_id: null }).eq("category_id", cat.id);
   const { error } = await sb.from("cv_categories").delete().eq("id", cat.id);
@@ -999,7 +1057,21 @@ async function deleteCategory(cat){
   await loadAll();
 }
 
+async function deleteEcosystem(cat, ecosystem){
+  const count = TOOLS.filter(t => (t.category_id||null) === (cat.id||null) && t.ecosystem === ecosystem).length;
+  const itemsNote = count > 0 ? ` ${count} tool(s) in it will move to "Other", not be deleted.` : "";
+  if (!confirm(`Remove the "${ecosystem}" grouping?${itemsNote}`)) return;
+  openSections.add("tech-practice");
+  const { error } = await sb.from("cv_tools")
+    .update({ ecosystem: null })
+    .eq("category_id", cat.id)
+    .eq("ecosystem", ecosystem);
+  if (error){ toast("Couldn't remove ecosystem: " + error.message); return; }
+  await loadAll();
+}
+
 async function createCapability(text, categoryId){
+  openSections.add("tech-practice");
   const sortOrder = CAPABILITIES.reduce((m,c)=>Math.max(m,c.sort_order||0),0) + 1;
   const { error } = await sb.from("cv_capabilities").insert({ item_text: text, category_id: categoryId, sort_order: sortOrder });
   if (error){ toast("Couldn't add capability: " + error.message); return; }
@@ -1007,6 +1079,7 @@ async function createCapability(text, categoryId){
 }
 
 async function createTool(text, categoryId, ecosystem){
+  openSections.add("tech-practice");
   const sortOrder = TOOLS.reduce((m,t)=>Math.max(m,t.sort_order||0),0) + 1;
   const { error } = await sb.from("cv_tools").insert({ item_text: text, category_id: categoryId, ecosystem: ecosystem || null, sort_order: sortOrder });
   if (error){ toast("Couldn't add tool: " + error.message); return; }
@@ -1014,6 +1087,7 @@ async function createTool(text, categoryId, ecosystem){
 }
 
 async function deleteItem(item, kind){
+  openSections.add("tech-practice");
   const table = kind === "capability" ? "cv_capabilities" : "cv_tools";
   const { error } = await sb.from(table).delete().eq("id", item.id);
   if (error){ toast("Couldn't delete: " + error.message); return; }
@@ -1021,6 +1095,7 @@ async function deleteItem(item, kind){
 }
 
 async function moveItemToCategory(itemId, kind, categoryId, ecosystem){
+  openSections.add("tech-practice");
   const table = kind === "capability" ? "cv_capabilities" : "cv_tools";
   const payload = { category_id: categoryId || null };
   if (kind === "tool") payload.ecosystem = ecosystem || null;
@@ -1224,6 +1299,7 @@ function enableBulletDragDrop(wrap){
 }
 
 function addNewRole(typeId){
+  openSections.add(typeId);
   const tempRole = {
     id: null,
     type_id: typeId,
@@ -1317,6 +1393,7 @@ async function saveRole(card, role){
 
 async function deleteRole(role){
   if (!confirm(`Delete "${role.title}" at ${role.org}? This can't be undone.`)) return;
+  openSections.add(role.type_id);
   if (role.id){
     const { error } = await sb.from("cv_roles").delete().eq("id", role.id);
     if (error){ toast("Couldn't delete: " + error.message); return; }
