@@ -334,7 +334,6 @@
     font-size:10px;line-height:1;padding:0 2px;
   }
   .eco-delete-btn:hover{ color:#fff; }
-  .pills-inline{ display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center; }
   .eco-sub .pill{ background:rgba(255,255,255,.18); color:#fff; }
   .eco-sub .pill button{ color:#fff; }
   .eco-sub .pill-add{
@@ -949,10 +948,10 @@ function buildCategoryCard(cat){
       });
       row.appendChild(buildEcosystemSubgroup(cat, "", toolsInCat.filter(t=>!t.ecosystem)));
     } else {
-      const toolPillsWrap = document.createElement("span");
-      toolPillsWrap.className = "pills-inline";
-      toolsInCat.forEach(t=> toolPillsWrap.appendChild(buildPill(t, "tool")));
-      row.appendChild(toolPillsWrap);
+      // Pills go straight into `row` as siblings of the title (same fix as
+      // the ecosystem boxes) so they wrap individually instead of as one
+      // block that strands the title alone on its own line.
+      toolsInCat.forEach(t=> row.appendChild(buildPill(t, "tool")));
       const toolAddInput = document.createElement("input");
       toolAddInput.className = "pill-add";
       toolAddInput.placeholder = "Add new";
@@ -969,7 +968,7 @@ function buildCategoryCard(cat){
       });
       row.appendChild(toolAddInput);
       autoSizeInput(toolAddInput);
-      enablePillDrop(toolPillsWrap, "tool", cat.id || null, null);
+      enablePillDrop(row, "tool", cat.id || null, null);
     }
   }
 
@@ -1045,9 +1044,12 @@ function buildEcosystemSubgroup(cat, ecosystem, tools){
   }
   sub.appendChild(labelGroup);
 
-  const pillsWrap = document.createElement("span");
-  pillsWrap.className = "pills-inline";
-  tools.forEach(t=> pillsWrap.appendChild(buildPill(t, "tool")));
+  // Each pill is appended directly as a sibling flex item of the label
+  // (not nested in its own wrapping box) so the whole row wraps pill-by-pill
+  // — the first pill tucks in right after the label whenever there's room,
+  // instead of the label getting stranded alone on its own line whenever
+  // the full pill set doesn't fit.
+  tools.forEach(t=> sub.appendChild(buildPill(t, "tool")));
 
   const addInput = document.createElement("input");
   addInput.className = "pill-add";
@@ -1063,10 +1065,9 @@ function buildEcosystemSubgroup(cat, ecosystem, tools){
       createTool(text, cat.id, ecosystem || null);
     }
   });
-  pillsWrap.appendChild(addInput);
+  sub.appendChild(addInput);
   autoSizeInput(addInput);
-  enablePillDrop(pillsWrap, "tool", cat.id, ecosystem || null);
-  sub.appendChild(pillsWrap);
+  enablePillDrop(sub, "tool", cat.id, ecosystem || null);
   return sub;
 }
 
