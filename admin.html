@@ -299,6 +299,37 @@
     border:none;outline:none;flex:1;min-width:140px;
     font-size:14px;font-family:inherit;padding:4px 2px;background:transparent;
   }
+  .cat-list{
+    display:flex;flex-direction:column;gap:6px;
+    margin-bottom:8px;
+  }
+  .cat-row{
+    display:flex;align-items:center;gap:8px;
+    border:1px solid var(--line);border-radius:6px;
+    padding:6px 8px;background:#fff;
+  }
+  .cat-row-text{
+    flex:1;font-size:13px;color:var(--navy-dark);
+  }
+  .cat-row-category{
+    font-size:12px;border:1px solid var(--line);border-radius:6px;
+    padding:4px 6px;background:#fff;max-width:220px;
+  }
+  .cat-row-ecosystem{
+    font-size:12px;border:1px solid var(--line);border-radius:6px;
+    padding:4px 6px;width:120px;background:#fff;
+  }
+  .cat-add-row{
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  }
+  .cat-add-row input[type=text]{
+    border:1px solid var(--line);border-radius:6px;
+    padding:6px 8px;font-size:13px;flex:1;min-width:140px;
+  }
+  .cat-add-row select{
+    font-size:13px;border:1px solid var(--line);border-radius:6px;
+    padding:6px 8px;max-width:220px;
+  }
 
   .row-actions{
     display:flex;
@@ -418,8 +449,11 @@
                   <span>Capabilities (sidebar)</span>
                   <button type="button" class="clear-all-btn" data-clear="capabilities">Clear all</button>
                 </div>
-                <div class="tags-input" id="capabilities-input">
+                <div class="cat-list" id="capabilities-list"></div>
+                <div class="cat-add-row">
                   <input type="text" id="capability-entry" placeholder="Type a capability, press Enter">
+                  <select id="capability-entry-category"><option value="">No category</option></select>
+                  <button type="button" class="add-bullet-btn" id="capability-entry-add">Add</button>
                 </div>
               </div>
             </div>
@@ -429,8 +463,12 @@
                   <span>Tools (sidebar)</span>
                   <button type="button" class="clear-all-btn" data-clear="tools">Clear all</button>
                 </div>
-                <div class="tags-input" id="tools-input">
+                <div class="cat-list" id="tools-list"></div>
+                <div class="cat-add-row">
                   <input type="text" id="tool-entry" placeholder="Type a tool, press Enter">
+                  <select id="tool-entry-category"><option value="">No category</option></select>
+                  <input type="text" id="tool-entry-ecosystem" placeholder="Ecosystem (optional)">
+                  <button type="button" class="add-bullet-btn" id="tool-entry-add">Add</button>
                 </div>
               </div>
             </div>
@@ -1099,10 +1137,109 @@ function makeTagList(wrapId, entryId, onChange){
   return { add, clear, getAll };
 }
 
+let categoriesCache = [];
+async function loadCategories(){
+  const { data, error } = await sb.from("cv_categories").select("*").order("sort_order");
+  if (error){ toast("Couldn't load categories: " + error.message); return; }
+  categoriesCache = data || [];
+  const capSel = document.getElementById("capability-entry-category");
+  const toolSel = document.getElementById("tool-entry-category");
+  if (capSel) capSel.innerHTML = categoryOptionsHtml("");
+  if (toolSel) toolSel.innerHTML = categoryOptionsHtml("");
+}
+
+function categoryOptionsHtml(selectedId){
+  let html = `<option value="">No category</option>`;
+  categoriesCache.forEach(c=>{
+    html += `<option value="${c.id}"${c.id===selectedId?" selected":""}>${escapeHtml(c.label)}</option>`;
+  });
+  return html;
+}
+
+function makeCategorizedList(listId, entryId, categorySelectId, opts){
+  opts = opts || {};
+  const hasEcosystem = !!opts.hasEcosystem;
+  const list = document.getElementById(listId);
+  const entry = document.getElementById(entryId);
+  const categorySelect = document.getElementById(categorySelectId);
+  const ecosystemInput = hasEcosystem ? document.getElementById(opts.ecosystemId) : null;
+  const addBtn = document.getElementById(entryId + "-add");
+
+  function notify(silent){ if (!silent && opts.onChange) opts.onChange(); }
+
+  function addRow(text, categoryId, ecosystem, silent){
+    text = (text||"").trim();
+    if (!text) return;
+    const row = document.createElement("div");
+    row.className = "cat-row";
+    row.dataset.text = text;
+
+    const textSpan = document.createElement("span");
+    textSpan.className = "cat-row-text";
+    textSpan.textContent = text;
+    row.appendChild(textSpan);
+
+    const sel = document.createElement("select");
+    sel.className = "cat-row-category";
+    sel.innerHTML = categoryOptionsHtml(categoryId || "");
+    sel.addEventListener("change", ()=> notify());
+    row.appendChild(sel);
+
+    if (hasEcosystem){
+      const eco = document.createElement("input");
+      eco.type = "text";
+      eco.className = "cat-row-ecosystem";
+      eco.placeholder = "Ecosystem";
+      eco.value = ecosystem || "";
+      eco.addEventListener("input", ()=> notify());
+      row.appendChild(eco);
+    }
+
+    const rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "icon-btn";
+    rm.textContent = "✕";
+    rm.title = "Remove";
+    rm.onclick = ()=>{ row.remove(); notify(); };
+    row.appendChild(rm);
+
+    list.appendChild(row);
+    notify(silent);
+  }
+
+  function clear(silent){
+    list.innerHTML = "";
+    notify(silent);
+  }
+
+  function getAll(){
+    return Array.from(list.querySelectorAll(".cat-row")).map(row=>({
+      text: row.dataset.text,
+      category_id: row.querySelector(".cat-row-category").value || null,
+      ecosystem: hasEcosystem ? (row.querySelector(".cat-row-ecosystem").value.trim() || null) : undefined,
+    }));
+  }
+
+  function addFromEntry(){
+    addRow(entry.value, categorySelect ? categorySelect.value || null : null, ecosystemInput ? ecosystemInput.value : null);
+    entry.value = "";
+    if (ecosystemInput) ecosystemInput.value = "";
+    if (categorySelect) categorySelect.value = "";
+    entry.focus();
+  }
+
+  entry.addEventListener("keydown", (e)=>{
+    if (e.key === "Enter"){ e.preventDefault(); addFromEntry(); }
+  });
+  if (addBtn) addBtn.addEventListener("click", addFromEntry);
+
+  return { add: addRow, clear, getAll };
+}
+
 let profileAutosave; // registered further down, once loaded; tag edits mark it dirty via this closure
 const hobbiesTags = makeTagList("hobbies-input", "hobby-entry", ()=>markDirty(profileAutosave));
-const capabilitiesTags = makeTagList("capabilities-input", "capability-entry", ()=>markDirty(profileAutosave));
-const toolsTags = makeTagList("tools-input", "tool-entry", ()=>markDirty(profileAutosave));
+const capabilitiesTags = makeCategorizedList("capabilities-list", "capability-entry", "capability-entry-category", { onChange: ()=>markDirty(profileAutosave) });
+const toolsTags = makeCategorizedList("tools-list", "tool-entry", "tool-entry-category", { hasEcosystem: true, ecosystemId: "tool-entry-ecosystem", onChange: ()=>markDirty(profileAutosave) });
 
 const tagListsByName = { hobbies: hobbiesTags, capabilities: capabilitiesTags, tools: toolsTags };
 document.querySelectorAll(".clear-all-btn[data-clear]").forEach(btn=>{
@@ -1131,15 +1268,17 @@ async function loadProfile(){
   hobbiesTags.clear(true);
   hobbies.forEach(h=> hobbiesTags.add(h.hobby_text, true));
 
+  await loadCategories();
+
   const { data: capabilities, error: cErr } = await sb.from("cv_capabilities").select("*").order("sort_order");
   if (cErr){ toast("Couldn't load capabilities: " + cErr.message); return; }
   capabilitiesTags.clear(true);
-  capabilities.forEach(c=> capabilitiesTags.add(c.item_text, true));
+  capabilities.forEach(c=> capabilitiesTags.add(c.item_text, c.category_id, null, true));
 
   const { data: tools, error: tErr } = await sb.from("cv_tools").select("*").order("sort_order");
   if (tErr){ toast("Couldn't load tools: " + tErr.message); return; }
   toolsTags.clear(true);
-  tools.forEach(t=> toolsTags.add(t.item_text, true));
+  tools.forEach(t=> toolsTags.add(t.item_text, t.category_id, t.ecosystem, true));
 }
 
 async function saveProfile(){
@@ -1161,16 +1300,16 @@ async function saveProfile(){
     await sb.from("cv_hobbies").insert(hobbyTexts.map((text, i)=>({ hobby_text: text, sort_order: i+1 })));
   }
 
-  const capabilityTexts = capabilitiesTags.getAll();
+  const capabilityRows = capabilitiesTags.getAll();
   await sb.from("cv_capabilities").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-  if (capabilityTexts.length){
-    await sb.from("cv_capabilities").insert(capabilityTexts.map((text, i)=>({ item_text: text, sort_order: i+1 })));
+  if (capabilityRows.length){
+    await sb.from("cv_capabilities").insert(capabilityRows.map((r, i)=>({ item_text: r.text, category_id: r.category_id, sort_order: i+1 })));
   }
 
-  const toolTexts = toolsTags.getAll();
+  const toolRows = toolsTags.getAll();
   await sb.from("cv_tools").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-  if (toolTexts.length){
-    await sb.from("cv_tools").insert(toolTexts.map((text, i)=>({ item_text: text, sort_order: i+1 })));
+  if (toolRows.length){
+    await sb.from("cv_tools").insert(toolRows.map((r, i)=>({ item_text: r.text, category_id: r.category_id, ecosystem: r.ecosystem, sort_order: i+1 })));
   }
 
   await loadProfile();
