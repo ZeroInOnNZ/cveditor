@@ -300,17 +300,15 @@
     font-size:14px;font-family:inherit;padding:4px 2px;background:transparent;
   }
   .cat-group{
-    position:relative;
     background:var(--card);
     border:1px solid var(--line);
     border-radius:8px;
-    padding:14px 40px 14px 16px;
+    padding:14px 16px;
     margin-bottom:12px;
   }
   .cat-group:last-child{ margin-bottom:0; }
   .cat-delete-btn{
-    position:absolute; top:12px; right:12px;
-    font-size:13px; line-height:1; padding:4px 7px;
+    font-size:13px; line-height:1; padding:4px 7px; flex-shrink:0;
   }
   .cat-row{
     display:flex;flex-wrap:wrap;align-items:center;gap:6px;
@@ -321,24 +319,29 @@
   }
   .eco-sub{
     display:inline-flex;align-items:center;gap:6px;
-    border:1px solid var(--line);border-radius:999px;
-    padding:4px 10px 4px 4px;
+    background:var(--navy);border-radius:999px;
+    padding:6px 12px;
   }
   .eco-label-group{
     display:inline-flex;align-items:center;gap:2px;
   }
   .eco-label{
     font-size:11px;font-weight:700;text-transform:uppercase;
-    letter-spacing:.3px;white-space:nowrap;
-    border-radius:999px;padding:3px 8px;
+    letter-spacing:.3px;white-space:nowrap;color:#fff;
   }
   .eco-delete-btn{
-    background:none;border:none;color:var(--muted);cursor:pointer;
+    background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;
     font-size:10px;line-height:1;padding:0 2px;
   }
-  .eco-delete-btn:hover{ color:var(--danger); }
+  .eco-delete-btn:hover{ color:#fff; }
   .pills-inline{ display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center; }
-  .eco-sub .pill-add{ min-width:70px; }
+  .eco-sub .pill{ background:rgba(255,255,255,.18); color:#fff; }
+  .eco-sub .pill button{ color:#fff; }
+  .eco-sub .pill-add{
+    width:64px;color:#fff;
+  }
+  .eco-sub .pill-add::placeholder{ color:rgba(255,255,255,.65); }
+  .add-new-toggle-wrap{ display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:10px; }
   .pills{
     display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:30px;
   }
@@ -354,8 +357,9 @@
     cursor:pointer;font-size:11px;line-height:1;padding:2px;
   }
   .pill-add{
-    border:none;outline:none;border-bottom:1px dashed var(--line);
-    font-size:13px;font-family:inherit;padding:4px 2px;background:transparent;min-width:140px;
+    border:none;outline:none;
+    font-size:13px;font-family:inherit;padding:4px 2px;background:transparent;
+    width:62px;field-sizing:content;max-width:260px;
   }
   .add-tool-row{
     display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;
@@ -863,34 +867,19 @@ function enablePillDrop(container, kind, categoryId, ecosystem){
   });
 }
 
-const ECOSYSTEM_PALETTE = [
-  { bg: "#E6F1FB", fg: "#0C447C" },
-  { bg: "#EAF3DE", fg: "#27500A" },
-  { bg: "#FAEEDA", fg: "#633806" },
-  { bg: "#FBEAF0", fg: "#72243E" },
-  { bg: "#EEEDFE", fg: "#3C3489" },
-  { bg: "#FAECE7", fg: "#712B13" },
-  { bg: "#E1F5EE", fg: "#085041" },
-];
-function colorForEcosystem(name){
-  let hash = 0;
-  for (let i=0;i<name.length;i++){ hash = (hash*31 + name.charCodeAt(i)) >>> 0; }
-  return ECOSYSTEM_PALETTE[hash % ECOSYSTEM_PALETTE.length];
+function buildCategoryDeleteBtn(cat){
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "icon-btn cat-delete-btn";
+  delBtn.title = "Delete category";
+  delBtn.textContent = "\u{1F5D1}️";
+  delBtn.onclick = ()=> deleteCategory(cat);
+  return delBtn;
 }
 
 function buildCategoryCard(cat){
   const card = document.createElement("div");
   card.className = "cat-group";
-
-  if (cat.id){
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.className = "icon-btn cat-delete-btn";
-    delBtn.title = "Delete category";
-    delBtn.textContent = "\u{1F5D1}️";
-    delBtn.onclick = ()=> deleteCategory(cat);
-    card.appendChild(delBtn);
-  }
 
   const isTechTools = cat.key === "technology_tools";
   const isUncategorised = cat.id === null;
@@ -906,19 +895,24 @@ function buildCategoryCard(cat){
   CAPABILITIES.filter(c => (c.category_id||null) === (cat.id||null)).forEach(c=>{
     row.appendChild(buildPill(c, "capability"));
   });
-  const capAddInput = document.createElement("input");
-  capAddInput.className = "pill-add";
-  capAddInput.placeholder = "Add new";
-  capAddInput.addEventListener("keydown", (e)=>{
-    if (e.key === "Enter"){
-      e.preventDefault();
-      const text = capAddInput.value.trim();
-      if (!text) return;
-      capAddInput.value = "";
-      createCapability(text, cat.id || null);
-    }
-  });
-  row.appendChild(capAddInput);
+  // Technology & Tools doesn't take new capabilities directly (it's the
+  // tools/ecosystems category) — no visible "Add new" there, though an
+  // existing capability can still be dragged in (handled below).
+  if (!isTechTools){
+    const capAddInput = document.createElement("input");
+    capAddInput.className = "pill-add";
+    capAddInput.placeholder = "Add new";
+    capAddInput.addEventListener("keydown", (e)=>{
+      if (e.key === "Enter"){
+        e.preventDefault();
+        const text = capAddInput.value.trim();
+        if (!text) return;
+        capAddInput.value = "";
+        createCapability(text, cat.id || null);
+      }
+    });
+    row.appendChild(capAddInput);
+  }
   enablePillDrop(row, "capability", cat.id || null);
 
   // Tools only ever live under "Technology & Tools" — Uncategorised still
@@ -955,11 +949,16 @@ function buildCategoryCard(cat){
     }
   }
 
+  if (cat.id && !isTechTools){
+    row.appendChild(buildCategoryDeleteBtn(cat));
+  }
+
   card.appendChild(row);
 
   if (isTechTools){
     const addRow = document.createElement("div");
     addRow.className = "add-tool-row";
+    addRow.style.display = "none";
     const ecoInput = document.createElement("input");
     ecoInput.type = "text"; ecoInput.placeholder = "New ecosystem name";
     const nameInput = document.createElement("input");
@@ -976,6 +975,24 @@ function buildCategoryCard(cat){
     ecoInput.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); doAdd(); } });
     addBtn.onclick = doAdd;
     addRow.appendChild(ecoInput); addRow.appendChild(nameInput); addRow.appendChild(addBtn);
+
+    const toggleWrap = document.createElement("div");
+    toggleWrap.className = "add-new-toggle-wrap";
+    const toggleBtn = document.createElement("button");
+    toggleBtn.type = "button";
+    toggleBtn.className = "add-role-btn";
+    toggleBtn.textContent = "+ Add New";
+    toggleBtn.onclick = ()=>{
+      const hidden = addRow.style.display === "none";
+      addRow.style.display = hidden ? "flex" : "none";
+      if (hidden) ecoInput.focus();
+    };
+    toggleWrap.appendChild(toggleBtn);
+    if (cat.id){
+      toggleWrap.appendChild(buildCategoryDeleteBtn(cat));
+    }
+
+    card.appendChild(toggleWrap);
     card.appendChild(addRow);
   }
 
@@ -991,11 +1008,6 @@ function buildEcosystemSubgroup(cat, ecosystem, tools){
   const label = document.createElement("span");
   label.className = "eco-label";
   label.textContent = ecosystem || "Other";
-  if (ecosystem){
-    const c = colorForEcosystem(ecosystem);
-    label.style.background = c.bg;
-    label.style.color = c.fg;
-  }
   labelGroup.appendChild(label);
 
   if (ecosystem){
