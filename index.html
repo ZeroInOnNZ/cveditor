@@ -348,7 +348,7 @@ async function loadCV(){
   if (profile.website) contactLines.push('<a href="' + linkHrefFor("website", profile.website) + '" target="_blank">' + escapeHtml(displayFor("website", profile.website)) + '</a>');
   if (profile.linkedin) contactLines.push('<a href="' + linkHrefFor("linkedin", profile.linkedin) + '" target="_blank">' + escapeHtml(displayFor("linkedin", profile.linkedin)) + '</a>');
 
-  const capabilitiesHtml = (capabilities||[]).map(c=>escapeHtml(c.item_text)).join("<br>");
+  const capabilitiesHtml = (capabilities||[]).filter(c=>c.show_on_cv !== false).map(c=>escapeHtml(c.item_text)).join("<br>");
   const toolsHtml = (tools && tools.length) ? ('<div class="d-list-2col">' + tools.map(t=>'<div>'+escapeHtml(t.item_text)+'</div>').join("") + '</div>') : "";
   const hobbiesHtml = (hobbies||[]).map(h=>escapeHtml(h.hobby_text)).join(" &middot; ");
 

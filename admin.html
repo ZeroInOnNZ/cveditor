@@ -166,6 +166,23 @@
     cursor:pointer;
   }
   .add-role-btn:hover{background:#eaf1f8}
+  .type-header-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .cv-count-badge{
+    font-size:12px;
+    color:var(--navy);
+    background:#eaf1f8;
+    border-radius:999px;
+    padding:4px 10px;
+    white-space:nowrap;
+  }
+  .cv-count-badge-warn{
+    color:#9a5b00;
+    background:#fdf0dc;
+  }
 
   .role-card{
     background:var(--card);
@@ -355,6 +372,10 @@
     background:none;border:none;color:var(--navy-dark);
     cursor:pointer;font-size:11px;line-height:1;padding:2px;
   }
+  .pill.pill-hidden-from-cv{
+    opacity:0.5;background:#f2f2f2;
+  }
+  .pill .cv-toggle-btn{ font-size:12px; }
   .pill-add{
     border:none;outline:none;
     font-size:13px;font-family:inherit;padding:4px 2px;background:transparent;
@@ -822,11 +843,22 @@ function renderTechPracticeSection(){
     if (section.classList.contains("collapsed")) openSections.delete("tech-practice");
     else openSections.add("tech-practice");
   };
+  const headerRight = document.createElement("div");
+  headerRight.className = "type-header-right";
+  const shownCount = CAPABILITIES.filter(c => c.show_on_cv !== false).length;
+  const counter = document.createElement("span");
+  counter.className = "cv-count-badge" + (shownCount > MAX_RECOMMENDED_ON_CV ? " cv-count-badge-warn" : "");
+  counter.title = shownCount > MAX_RECOMMENDED_ON_CV
+    ? `${shownCount} of ${CAPABILITIES.length} capabilities shown on CV — consider trimming below ${MAX_RECOMMENDED_ON_CV}`
+    : `${shownCount} of ${CAPABILITIES.length} capabilities shown on CV`;
+  counter.textContent = `\u{1F441}️ ${shownCount}/${CAPABILITIES.length} on CV`;
+  headerRight.appendChild(counter);
   const addBtn = document.createElement("button");
   addBtn.className = "add-role-btn";
   addBtn.textContent = "+ Add category";
   addBtn.onclick = (e)=>{ e.stopPropagation(); createCategory(); };
-  header.appendChild(addBtn);
+  headerRight.appendChild(addBtn);
+  header.appendChild(headerRight);
   section.appendChild(header);
 
   const body = document.createElement("div");
@@ -858,10 +890,21 @@ function autoSizeInput(input){
 function buildPill(item, kind){
   const pill = document.createElement("span");
   pill.className = "pill";
+  if (kind === "capability" && item.show_on_cv === false) pill.classList.add("pill-hidden-from-cv");
   pill.draggable = true;
   pill.dataset.id = item.id;
   pill.dataset.kind = kind;
   pill.textContent = item.item_text;
+  if (kind === "capability"){
+    const cvToggle = document.createElement("button");
+    cvToggle.type = "button";
+    cvToggle.className = "icon-btn cv-toggle-btn";
+    const shown = item.show_on_cv !== false;
+    cvToggle.textContent = shown ? "\u{1F441}️" : "\u{1F648}";
+    cvToggle.title = shown ? "Shown on CV — click to hide" : "Hidden from CV — click to show";
+    cvToggle.onclick = (e)=>{ e.stopPropagation(); toggleShowOnCv(item); };
+    pill.appendChild(cvToggle);
+  }
   const rm = document.createElement("button");
   rm.type = "button";
   rm.textContent = "✕";
@@ -1131,6 +1174,16 @@ async function deleteItem(item, kind){
   const table = kind === "capability" ? "cv_capabilities" : "cv_tools";
   const { error } = await sb.from(table).delete().eq("id", item.id);
   if (error){ toast("Couldn't delete: " + error.message); return; }
+  await loadAll();
+}
+
+const MAX_RECOMMENDED_ON_CV = 12;
+
+async function toggleShowOnCv(item){
+  openSections.add("tech-practice");
+  const next = !item.show_on_cv;
+  const { error } = await sb.from("cv_capabilities").update({ show_on_cv: next }).eq("id", item.id);
+  if (error){ toast("Couldn't update: " + error.message); return; }
   await loadAll();
 }
 
