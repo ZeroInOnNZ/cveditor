@@ -838,6 +838,24 @@ function renderTechPracticeSection(){
   return section;
 }
 
+// field-sizing:content isn't supported in every browser, so this gives the
+// "Add new" inputs a reliable auto-grow-to-content fallback that works
+// everywhere.
+let _measureSpan = null;
+function autoSizeInput(input){
+  if (!_measureSpan){
+    _measureSpan = document.createElement("span");
+    _measureSpan.style.cssText = "position:absolute;visibility:hidden;white-space:pre;top:-9999px;left:-9999px;";
+    document.body.appendChild(_measureSpan);
+  }
+  const cs = getComputedStyle(input);
+  _measureSpan.style.font = cs.font;
+  _measureSpan.textContent = input.value || input.placeholder || "";
+  const width = _measureSpan.offsetWidth + 14;
+  const min = 50, max = 280;
+  input.style.width = Math.min(max, Math.max(min, width)) + "px";
+}
+
 function buildPill(item, kind){
   const pill = document.createElement("span");
   pill.className = "pill";
@@ -902,16 +920,19 @@ function buildCategoryCard(cat){
     const capAddInput = document.createElement("input");
     capAddInput.className = "pill-add";
     capAddInput.placeholder = "Add new";
+    capAddInput.addEventListener("input", ()=> autoSizeInput(capAddInput));
     capAddInput.addEventListener("keydown", (e)=>{
       if (e.key === "Enter"){
         e.preventDefault();
         const text = capAddInput.value.trim();
         if (!text) return;
         capAddInput.value = "";
+        autoSizeInput(capAddInput);
         createCapability(text, cat.id || null);
       }
     });
     row.appendChild(capAddInput);
+    autoSizeInput(capAddInput);
   }
   enablePillDrop(row, "capability", cat.id || null);
 
@@ -935,16 +956,19 @@ function buildCategoryCard(cat){
       const toolAddInput = document.createElement("input");
       toolAddInput.className = "pill-add";
       toolAddInput.placeholder = "Add new";
+      toolAddInput.addEventListener("input", ()=> autoSizeInput(toolAddInput));
       toolAddInput.addEventListener("keydown", (e)=>{
         if (e.key === "Enter"){
           e.preventDefault();
           const text = toolAddInput.value.trim();
           if (!text) return;
           toolAddInput.value = "";
+          autoSizeInput(toolAddInput);
           createTool(text, cat.id || null, null);
         }
       });
       row.appendChild(toolAddInput);
+      autoSizeInput(toolAddInput);
       enablePillDrop(toolPillsWrap, "tool", cat.id || null, null);
     }
   }
@@ -1028,16 +1052,19 @@ function buildEcosystemSubgroup(cat, ecosystem, tools){
   const addInput = document.createElement("input");
   addInput.className = "pill-add";
   addInput.placeholder = "Add new";
+  addInput.addEventListener("input", ()=> autoSizeInput(addInput));
   addInput.addEventListener("keydown", (e)=>{
     if (e.key === "Enter"){
       e.preventDefault();
       const text = addInput.value.trim();
       if (!text) return;
       addInput.value = "";
+      autoSizeInput(addInput);
       createTool(text, cat.id, ecosystem || null);
     }
   });
   pillsWrap.appendChild(addInput);
+  autoSizeInput(addInput);
   enablePillDrop(pillsWrap, "tool", cat.id, ecosystem || null);
   sub.appendChild(pillsWrap);
   return sub;
