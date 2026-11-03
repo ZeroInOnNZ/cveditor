@@ -884,57 +884,63 @@ function buildCategoryCard(cat){
   enablePillDrop(capPillsWrap, "capability", cat.id || null);
   card.appendChild(capPillsWrap);
 
-  const toolLabel = document.createElement("div");
-  toolLabel.className = "pill-sub-label";
-  toolLabel.textContent = "Tools";
-  card.appendChild(toolLabel);
+  // Tools only ever live under "Technology & Tools" (every real tool is
+  // categorised there) — showing an empty Tools row on every other category
+  // card was clutter. Uncategorised still gets one, as a safety net for any
+  // tool that's been dragged or de-categorised out of Technology & Tools.
+  if (cat.key === "technology_tools" || cat.id === null){
+    const toolLabel = document.createElement("div");
+    toolLabel.className = "pill-sub-label";
+    toolLabel.textContent = "Tools";
+    card.appendChild(toolLabel);
 
-  const toolsInCat = TOOLS.filter(t => (t.category_id||null) === (cat.id||null));
+    const toolsInCat = TOOLS.filter(t => (t.category_id||null) === (cat.id||null));
 
-  if (cat.key === "technology_tools"){
-    const ecosystems = Array.from(new Set(toolsInCat.map(t=> t.ecosystem || "").filter(Boolean))).sort();
-    ecosystems.forEach(eco=>{
-      card.appendChild(buildEcosystemSubgroup(cat, eco, toolsInCat.filter(t=>t.ecosystem===eco)));
-    });
-    card.appendChild(buildEcosystemSubgroup(cat, "", toolsInCat.filter(t=>!t.ecosystem)));
+    if (cat.key === "technology_tools"){
+      const ecosystems = Array.from(new Set(toolsInCat.map(t=> t.ecosystem || "").filter(Boolean))).sort();
+      ecosystems.forEach(eco=>{
+        card.appendChild(buildEcosystemSubgroup(cat, eco, toolsInCat.filter(t=>t.ecosystem===eco)));
+      });
+      card.appendChild(buildEcosystemSubgroup(cat, "", toolsInCat.filter(t=>!t.ecosystem)));
 
-    const addRow = document.createElement("div");
-    addRow.className = "add-tool-row";
-    const nameInput = document.createElement("input");
-    nameInput.type = "text"; nameInput.placeholder = "New tool name";
-    const ecoInput = document.createElement("input");
-    ecoInput.type = "text"; ecoInput.placeholder = "Ecosystem (optional, can be new)";
-    const addBtn = document.createElement("button");
-    addBtn.type = "button"; addBtn.className = "add-bullet-btn"; addBtn.textContent = "Add";
-    const doAdd = ()=>{
-      const text = nameInput.value.trim();
-      if (!text) return;
-      createTool(text, cat.id, ecoInput.value.trim() || null);
-      nameInput.value = ""; ecoInput.value = "";
-    };
-    nameInput.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); doAdd(); } });
-    addBtn.onclick = doAdd;
-    addRow.appendChild(nameInput); addRow.appendChild(ecoInput); addRow.appendChild(addBtn);
-    card.appendChild(addRow);
-  } else {
-    const toolPillsWrap = document.createElement("div");
-    toolPillsWrap.className = "pills";
-    toolsInCat.forEach(t=> toolPillsWrap.appendChild(buildPill(t, "tool")));
-    const toolAddInput = document.createElement("input");
-    toolAddInput.className = "pill-add";
-    toolAddInput.placeholder = "Add, press Enter";
-    toolAddInput.addEventListener("keydown", (e)=>{
-      if (e.key === "Enter"){
-        e.preventDefault();
-        const text = toolAddInput.value.trim();
+      const addRow = document.createElement("div");
+      addRow.className = "add-tool-row";
+      const nameInput = document.createElement("input");
+      nameInput.type = "text"; nameInput.placeholder = "New tool name";
+      const ecoInput = document.createElement("input");
+      ecoInput.type = "text"; ecoInput.placeholder = "Ecosystem (optional, can be new)";
+      const addBtn = document.createElement("button");
+      addBtn.type = "button"; addBtn.className = "add-bullet-btn"; addBtn.textContent = "Add";
+      const doAdd = ()=>{
+        const text = nameInput.value.trim();
         if (!text) return;
-        toolAddInput.value = "";
-        createTool(text, cat.id || null, null);
-      }
-    });
-    toolPillsWrap.appendChild(toolAddInput);
-    enablePillDrop(toolPillsWrap, "tool", cat.id || null, null);
-    card.appendChild(toolPillsWrap);
+        createTool(text, cat.id, ecoInput.value.trim() || null);
+        nameInput.value = ""; ecoInput.value = "";
+      };
+      nameInput.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); doAdd(); } });
+      addBtn.onclick = doAdd;
+      addRow.appendChild(nameInput); addRow.appendChild(ecoInput); addRow.appendChild(addBtn);
+      card.appendChild(addRow);
+    } else {
+      const toolPillsWrap = document.createElement("div");
+      toolPillsWrap.className = "pills";
+      toolsInCat.forEach(t=> toolPillsWrap.appendChild(buildPill(t, "tool")));
+      const toolAddInput = document.createElement("input");
+      toolAddInput.className = "pill-add";
+      toolAddInput.placeholder = "Add, press Enter";
+      toolAddInput.addEventListener("keydown", (e)=>{
+        if (e.key === "Enter"){
+          e.preventDefault();
+          const text = toolAddInput.value.trim();
+          if (!text) return;
+          toolAddInput.value = "";
+          createTool(text, cat.id || null, null);
+        }
+      });
+      toolPillsWrap.appendChild(toolAddInput);
+      enablePillDrop(toolPillsWrap, "tool", cat.id || null, null);
+      card.appendChild(toolPillsWrap);
+    }
   }
 
   return card;
