@@ -298,6 +298,7 @@ async function loadCV(){
     { data: hobbies },
     { data: capabilities },
     { data: tools },
+    { data: toolCategories },
     { data: types },
     { data: roles },
     { data: bullets }
@@ -307,6 +308,7 @@ async function loadCV(){
     sb.from("cv_hobbies").select("*").order("sort_order"),
     sb.from("cv_capabilities").select("*").order("sort_order"),
     sb.from("cv_tools").select("*").order("sort_order"),
+    sb.from("cv_tool_categories").select("*").order("sort_order"),
     sb.from("cv_types").select("*").order("sort_order"),
     sb.from("cv_roles").select("*").order("sort_order"),
     sb.from("cv_bullets").select("*").order("sort_order"),
@@ -349,7 +351,28 @@ async function loadCV(){
   if (profile.linkedin) contactLines.push('<a href="' + linkHrefFor("linkedin", profile.linkedin) + '" target="_blank">' + escapeHtml(displayFor("linkedin", profile.linkedin)) + '</a>');
 
   const capabilitiesHtml = (capabilities||[]).filter(c=>c.show_on_cv !== false).map(c=>escapeHtml(c.item_text)).join("<br>");
-  const toolsHtml = (tools && tools.length) ? ('<div class="d-list-2col">' + tools.map(t=>'<div>'+escapeHtml(t.item_text)+'</div>').join("") + '</div>') : "";
+
+  const toolsByCategory = {};
+  (tools||[]).forEach(function(t){
+    const key = t.category_id || "_none";
+    toolsByCategory[key] = toolsByCategory[key] || [];
+    toolsByCategory[key].push(t);
+  });
+  const orderedToolCatIds = (toolCategories||[]).map(function(tc){ return tc.id; }).concat(["_none"]);
+  const toolCategoryById = {};
+  (toolCategories||[]).forEach(function(tc){ toolCategoryById[tc.id] = tc; });
+  const toolSections = orderedToolCatIds.map(function(catId){
+    const list = (toolsByCategory[catId]||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+    if (!list.length) return null;
+    const label = catId === "_none" ? null : (toolCategoryById[catId] && toolCategoryById[catId].label);
+    const html = '<div class="d-list-2col">' + list.map(function(t){ return '<div>'+escapeHtml(t.item_text)+'</div>'; }).join("") + '</div>';
+    return { heading: label, html: html };
+  }).filter(Boolean);
+  const toolsHtml = toolSections.map(function(sec, idx){
+    const headingHtml = sec.heading ? ('<div style="margin-top:' + (idx===0 ? '0' : '8px') + ';font-weight:500;color:#fff">' + escapeHtml(sec.heading) + '</div>') : '';
+    return headingHtml + sec.html;
+  }).join("");
+
   const hobbiesHtml = (hobbies||[]).map(h=>escapeHtml(h.hobby_text)).join(" &middot; ");
 
   const eduGroups = [];
