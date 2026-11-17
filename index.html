@@ -160,7 +160,10 @@
     .cv-page { margin: 0; box-shadow: none; padding: 0; max-width: 100%; }
     .cv-page, .design-sidebar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .design-sidebar { width: 30%; }
-    .role-title, .role-meta, .role-summary { break-after: avoid; page-break-after: avoid; }
+    .role-head, .role-title, .role-meta, .role-summary { break-after: avoid; page-break-after: avoid; }
+    .role-summary { break-inside: avoid; page-break-inside: avoid; }
+    .design-sidebar .d-heading, .d-subhead { break-after: avoid; page-break-after: avoid; }
+    .d-group { break-inside: avoid; page-break-inside: avoid; }
     ul.cv-list li { break-inside: avoid; page-break-inside: avoid; }
     .section-heading { break-after: avoid; page-break-after: avoid; }
   }
@@ -262,7 +265,7 @@ function renderRoleBlock(r){
   if (mode === "summary") roleBullets = [];
 
   return '<div class="role-block">' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
+    '<div class="role-head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
       '<p class="role-title" style="margin-bottom:0">' + escapeHtml(r.title) + '</p>' +
       roleToggleHtml(r.id) +
     '</div>' +
@@ -369,8 +372,8 @@ async function loadCV(){
     return { heading: label, html: html };
   }).filter(Boolean);
   const toolsHtml = toolSections.map(function(sec, idx){
-    const headingHtml = sec.heading ? ('<div style="margin-top:' + (idx===0 ? '0' : '8px') + ';font-weight:500;color:#fff">' + escapeHtml(sec.heading) + '</div>') : '';
-    return headingHtml + sec.html;
+    const headingHtml = sec.heading ? ('<div class="d-subhead" style="margin-top:' + (idx===0 ? '0' : '8px') + ';font-weight:500;color:#fff">' + escapeHtml(sec.heading) + '</div>') : '';
+    return '<div class="d-group">' + headingHtml + sec.html + '</div>';
   }).join("");
 
   const hobbiesHtml = (hobbies||[]).map(h=>escapeHtml(h.hobby_text)).join(" &middot; ");
