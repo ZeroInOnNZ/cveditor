@@ -385,10 +385,10 @@ async function loadCV(){
     if (!group){ group = { org, titles: [] }; eduGroups.push(group); }
     group.titles.push(r.title);
   });
-  const eduHtml = eduGroups.map(function(g){
-    return '<div style="margin-top:8px;font-weight:500;color:#fff">' + escapeHtml(g.org) + '</div>' +
-      g.titles.map(function(t){ return escapeHtml(t); }).join("<br>");
-  }).join("").replace(/^<div style="margin-top:8px;/, '<div style="margin-top:0;');
+  const eduHtml = eduGroups.map(function(g, idx){
+    return '<div class="d-group"><div class="d-subhead" style="margin-top:' + (idx===0 ? '0' : '8px') + ';font-weight:500;color:#fff">' + escapeHtml(g.org) + '</div>' +
+      g.titles.map(function(t){ return escapeHtml(t); }).join("<br>") + '</div>';
+  }).join("");
 
   const certHtml = certRoles.map(r=>{
     return escapeHtml(r.title);
